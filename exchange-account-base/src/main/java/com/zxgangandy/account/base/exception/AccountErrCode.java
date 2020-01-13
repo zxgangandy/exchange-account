@@ -5,7 +5,8 @@ import com.zxgangandy.base.exception.IBizErrCode;
 public enum AccountErrCode implements IBizErrCode {
     ACCOUNT_NOT_FOUND("12000", "account-not-found"),
     FROZEN_ACCOUNT_FAILED("12001", "frozen-account-failed"),
-    USER_FEE_RATE_NOT_FOUND("12002", "user-fee-rate-not-found"),
+    BIZ_TYPE_NOT_FOUND("12002", "biz-type-not-found"),
+    UNFROZEN_ACCOUNT_FAILED("12001", "unfrozen-account-failed"),
     LEVEL_FEE_RATE_NOT_FOUND("12003", "level-fee-rate-not-found"),
     SYMBOL_LOWER_THAN_MIN_VOLUME("12004", "symbol-lower-than-min-volume"),
     SYMBOL_BIGGER_THAN_MAX_VOLUME("12005", "symbol-bigger-than-max-volume"),

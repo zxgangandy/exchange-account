@@ -1,21 +1,22 @@
-package com.zxgangandy.account.biz.mq.msg;
+package com.zxgangandy.account.biz.bo;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Data
 @Accessors(chain = true)
-public class PlaceOrderFrozenMsg {
+public class FrozenReqBO {
     /**
      * 订单号
      */
-    private long orderId;
+    private Long orderId;
     /**
      * 用户号
      */
-    private long userId;
+    private Long userId;
     /**
      * 币种
      */
@@ -28,5 +29,9 @@ public class PlaceOrderFrozenMsg {
      * 冻结数量（金额）
      */
     private BigDecimal amount;
+    /**
+     * 冻结备注
+     */
+    private String remark;
 
 }

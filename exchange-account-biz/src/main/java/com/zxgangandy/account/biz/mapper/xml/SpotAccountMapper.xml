@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zxgangandy.account.biz.mapper.SpotAccountMapper">
+    <update id="frozenByUser">
+        update spot_account set balance = balance - #{amount}, frozen = frozen + #{amount}
+        where user_id = #{userId} and currency=#{currency} and balance >=0
+    </update>
 
+    <update id="frozenByAccount">
+        update spot_account set balance = balance - #{amount}, frozen = frozen + #{amount}
+        where account_id = #{accountId} and balance >=0
+    </update>
+
+    <update id="unfrozenByUser">
+        update spot_account set balance = balance + #{amount}, frozen = frozen - #{amount}
+        where user_id = #{userId} and currency=#{currency} and frozen >=0
+    </update>
+
+    <update id="unfrozenByAccount">
+        update spot_account set balance = balance + #{amount}, frozen = frozen - #{amount}
+        where account_id = #{accountId} and frozen >=0
+    </update>
 </mapper>

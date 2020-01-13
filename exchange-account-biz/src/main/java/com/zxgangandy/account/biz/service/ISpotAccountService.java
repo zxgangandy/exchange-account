@@ -1,5 +1,7 @@
 package com.zxgangandy.account.biz.service;
 
+import com.zxgangandy.account.biz.bo.FrozenReqBO;
+import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
 import com.zxgangandy.account.biz.entity.SpotAccount;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -39,12 +41,13 @@ public interface ISpotAccountService extends IService<SpotAccount> {
     /**
      *  冻结用户部分资产
      */
-    void frozen(long userId, long orderId, String currency, String bizType, BigDecimal amount, String remark);
+    void frozen(FrozenReqBO frozenAccountReqBO);
 
     /**
-     *  解冻用户账户信息
+     *  根据订单信息解冻账号
      */
-    void unfrozen();
+    void unfrozen(UnfrozenReqBO reqBO);
+
 
     /**
      *  转账
