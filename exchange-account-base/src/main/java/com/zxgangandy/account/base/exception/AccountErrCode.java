@@ -1,6 +1,6 @@
 package com.zxgangandy.account.base.exception;
 
-import com.zxgangandy.base.exception.IBizErrCode;
+import com.zxgangandy.base.utils.exception.IBizErrCode;
 
 public enum AccountErrCode implements IBizErrCode {
     ACCOUNT_NOT_FOUND("12000", "account-not-found"),
