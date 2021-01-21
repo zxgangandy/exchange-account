@@ -51,6 +51,11 @@ public class SpotAccountLog implements Serializable {
     private Long toAccountId;
 
     /**
+     * 币种
+     */
+    private String currency;
+
+    /**
      * 数量/金额
      */
     private BigDecimal amount;

@@ -1,4 +1,4 @@
-package com.zxgangandy.account.base.exception;
+package com.zxgangandy.account.biz.exception;
 
 import com.zxgangandy.base.utils.exception.IBizErrCode;
 

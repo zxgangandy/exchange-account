@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static com.zxgangandy.account.base.exception.AccountErrCode.*;
+import static com.zxgangandy.account.biz.exception.AccountErrCode.*;
 import static com.zxgangandy.account.biz.support.AccountSupport.createFrozenLog;
 import static com.zxgangandy.account.biz.support.AccountSupport.createUnfrozenLog;
 

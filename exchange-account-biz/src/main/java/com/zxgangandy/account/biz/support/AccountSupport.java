@@ -15,6 +15,7 @@ public class AccountSupport {
                 .setAmount(reqBO.getAmount())
                 .setBizType(reqBO.getBizType())
                 .setOrderId(reqBO.getOrderId())
+                .setCurrency(reqBO.getCurrency())
                 .setRemark(reqBO.getRemark());
     }
 
@@ -24,6 +25,7 @@ public class AccountSupport {
                 .setToAccountId(account.getAccountId())
                 .setFromUserId(reqBO.getUserId())
                 .setToUserId(reqBO.getUserId())
+                .setCurrency(reqBO.getCurrency())
                 .setAmount(accountLog.getAmount())
                 .setBizType(reqBO.getBizType())
                 .setOrderId(accountLog.getOrderId())
