@@ -117,6 +117,7 @@
         <module>exchange-account-biz</module>
         <module>exchange-account-model</module>
         <module>exchange-account-rest</module>
+        <module>exchange-account-assembly</module>
     </modules>
 
 </project>

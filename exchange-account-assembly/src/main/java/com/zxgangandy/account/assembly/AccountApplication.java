@@ -1,4 +1,4 @@
-package com.zxgangandy.account.rest;
+package com.zxgangandy.account.assembly;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @EnableDiscoveryClient
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.zxgangandy.account", "com.zxgangandy.base"})
+@ComponentScan(basePackages = {"com.zxgangandy.account"})
 public class AccountApplication {
     public static void main(String[] args) {
         SpringApplication.run(AccountApplication.class, args);

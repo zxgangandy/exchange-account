@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
-import static com.zxgangandy.base.utils.constant.ApiConstant.V_1;
+import static io.jingwei.base.utils.constant.ApiConstant.V_1;
+
 
 @RestController
 @RequestMapping("/")
