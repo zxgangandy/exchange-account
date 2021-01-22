@@ -108,15 +108,15 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
     private void updateAccountFrozen(long userId, String currency, BigDecimal amount) {
         if (!SqlHelper.retBool(spotAccountMapper.frozenByUser(userId, currency, amount))) {
-            log.warn("update user={} spot account with currency={} failed", userId, currency);
+            log.warn("update user={}, currency={} account frozen failed", userId, currency);
             throw new BizErr(FROZEN_ACCOUNT_FAILED);
         }
     }
 
     private void updateAccountUnfrozen(long userId, String currency, BigDecimal amount) {
         if (!SqlHelper.retBool(spotAccountMapper.unfrozenByUser(userId, currency, amount))) {
-            log.warn("update user={} spot account with currency={} failed", userId, currency);
-            throw new BizErr(FROZEN_ACCOUNT_FAILED);
+            log.warn("update user={}, currency={} account unfrozen failed", userId, currency);
+            throw new BizErr(UNFROZEN_ACCOUNT_FAILED);
         }
     }
 
@@ -147,7 +147,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
         if (reqBO.getUnfrozenAmount().compareTo(frozenHistory.getLeftFrozen()) > 0) {
             log.warn("User={}, order={}, bizType={}, unfrozen amount={} bigger than order left frozen amount={}",
                     userId, orderId, bizType, reqBO.getUnfrozenAmount(), frozenHistory.getLeftFrozen());
-            throw new BizErr(UNFROZEN_ACCOUNT_FAILED);
+            throw new BizErr(UNFROZEN_AMOUNT_INVALID);
         }
     }
 
@@ -160,7 +160,9 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
      */
     private void saveOrderFrozen(SpotAccount account, FrozenReqBO reqBO) {
         SpotAccountFrozen frozen = createOrderFrozen(account, reqBO);
-        spotAccountFrozenService.save(frozen);
+        if(!spotAccountFrozenService.save(frozen)) {
+            throw new BizErr(SAVE_ORDER_FROZEN_FAILED);
+        }
     }
 
     /**
@@ -182,7 +184,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
         if (!spotAccountLogService.save(accountLog)) {
             log.warn("save user={} account log failed", account);
-            throw new BizErr(FROZEN_ACCOUNT_FAILED);
+            throw new BizErr(SAVE_FROZEN_LOG_FAILED);
         }
     }
 
@@ -191,7 +193,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
         if (!spotAccountLogService.save(newAccountLog)) {
             log.warn("save user={} account log failed", account);
-            throw new BizErr(UNFROZEN_ACCOUNT_FAILED);
+            throw new BizErr(SAVE_UNFROZEN_LOG_FAILED);
         }
     }
 
