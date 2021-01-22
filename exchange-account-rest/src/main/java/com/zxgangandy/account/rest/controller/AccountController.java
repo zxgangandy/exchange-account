@@ -7,8 +7,8 @@ import com.zxgangandy.account.model.dto.UnfrozenReqDTO;
 import com.zxgangandy.account.model.dto.UnfrozenRespDTO;
 import com.zxgangandy.account.rest.converter.FrozenReqConverter;
 import com.zxgangandy.account.rest.converter.UnfrozenReqConverter;
+import io.jingwei.base.utils.model.R;
 import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,16 +28,16 @@ public class AccountController {
     private final UnfrozenReqConverter  unfrozenReqConverter;
 
     @PostMapping(V_1 + "/account/frozen")
-    public ResponseEntity<FrozenAccountRespDTO> frozenAccount(@RequestBody @Valid FrozenAccountReqDTO req) {
+    public R<FrozenAccountRespDTO> frozenAccount(@RequestBody @Valid FrozenAccountReqDTO req) {
         spotAccountService.frozen(frozenReqConverter.to(req));
 
-        return ResponseEntity.ok().body(new FrozenAccountRespDTO().setOrderId(req.getOrderId()));
+        return R.ok(new FrozenAccountRespDTO().setOrderId(req.getOrderId()));
     }
 
     @PostMapping(V_1 + "/account/unfrozen")
-    public ResponseEntity<UnfrozenRespDTO> unfrozenAccount(@RequestBody @Valid UnfrozenReqDTO req) {
+    public R<UnfrozenRespDTO> unfrozenAccount(@RequestBody @Valid UnfrozenReqDTO req) {
         spotAccountService.unfrozen(unfrozenReqConverter.to(req));
 
-        return ResponseEntity.ok().body(new UnfrozenRespDTO().setOrderId(req.getOrderId()));
+        return R.ok(new UnfrozenRespDTO().setOrderId(req.getOrderId()));
     }
 }

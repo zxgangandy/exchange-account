@@ -1,28 +1,28 @@
 package com.zxgangandy.account.biz.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.zxgangandy.account.biz.bo.FrozenReqBO;
 import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
 import com.zxgangandy.account.biz.entity.SpotAccount;
+import com.zxgangandy.account.biz.entity.SpotAccountFrozen;
 import com.zxgangandy.account.biz.entity.SpotAccountLog;
 import com.zxgangandy.account.biz.mapper.SpotAccountMapper;
+import com.zxgangandy.account.biz.service.ISpotAccountFrozenService;
 import com.zxgangandy.account.biz.service.ISpotAccountLogService;
 import com.zxgangandy.account.biz.service.ISpotAccountService;
-import com.zxgangandy.base.utils.exception.BizErr;
-import com.zxgangandy.base.utils.tx.TxCallback;
-import com.zxgangandy.base.utils.tx.TxTemplateService;
+import io.jingwei.base.utils.exception.BizErr;
+import io.jingwei.base.utils.tx.TxTemplateService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static com.zxgangandy.account.biz.exception.AccountErrCode.*;
-import static com.zxgangandy.account.biz.support.AccountSupport.createFrozenLog;
-import static com.zxgangandy.account.biz.support.AccountSupport.createUnfrozenLog;
+import static com.zxgangandy.account.biz.support.AccountSupport.*;
 
 /**
  * <p>
@@ -36,75 +36,67 @@ import static com.zxgangandy.account.biz.support.AccountSupport.createUnfrozenLo
 @AllArgsConstructor
 @Slf4j
 public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotAccount> implements ISpotAccountService {
-    private final TxTemplateService      txTemplateService;
-    private final ISpotAccountLogService spotAccountLogService;
-    private final SpotAccountMapper      spotAccountMapper;
+    private final TxTemplateService         txTemplateService;
+    private final ISpotAccountLogService    spotAccountLogService;
+    private final SpotAccountMapper         spotAccountMapper;
+    private final ISpotAccountFrozenService spotAccountFrozenService;
 
     @Override
-    public SpotAccount getAccount(long userId, String currency) {
-        QueryWrapper<SpotAccount> wrapper = new QueryWrapper<>();
-        wrapper.lambda()
+    public Optional<SpotAccount> getAccount(long userId, String currency) {
+        return lambdaQuery()
                 .eq(SpotAccount::getUserId, userId)
-                .eq(SpotAccount::getCurrency, currency);
-        return  getOne(wrapper);
-
+                .eq(SpotAccount::getCurrency, currency).oneOpt();
     }
 
     @Override
     public List<SpotAccount> getAccountsByUserId(long userId) {
-        QueryWrapper<SpotAccount> wrapper = new QueryWrapper<>();
-        wrapper.lambda().eq(SpotAccount::getUserId, userId);
-        return  list(wrapper);
+        return lambdaQuery()
+                .eq(SpotAccount::getUserId, userId).list();
     }
 
     @Override
     public boolean hasEnoughBalance(long userId, String currency, BigDecimal amount) {
-        SpotAccount account = getAccount(userId, currency);
-        if (account == null) {
+        Optional<SpotAccount> opt = getAccount(userId, currency);
+        if (!opt.isPresent()) {
             log.warn("Account not exists, userId={}, currency={}", userId, currency);
-            return false;
+            throw new BizErr(ACCOUNT_NOT_FOUND);
         }
 
-        return account.getBalance().compareTo(amount) >= 0;
+        return opt.get().getBalance().compareTo(amount) >= 0;
     }
 
     @Override
     public SpotAccount getLockedAccount(long userId, String currency) {
-        QueryWrapper<SpotAccount> wrapper = new QueryWrapper<>();
-        wrapper.lambda()
+        return lambdaQuery()
                 .eq(SpotAccount::getUserId, userId)
                 .eq(SpotAccount::getCurrency, currency)
-                .last(" for update");
-        return  getOne(wrapper);
+                .last(" for update").one();
     }
 
     @Override
     public void frozen(FrozenReqBO reqBO) {
-        txTemplateService.withTransaction(new TxCallback() {
-            @Override
-            public void execute() {
-                frozenAccount(reqBO.getUserId(), reqBO.getCurrency(), reqBO.getAmount());
-                saveFrozenLog(getAccount(reqBO.getUserId(), reqBO.getCurrency()),reqBO);
-            }
+        if(!hasEnoughBalance(reqBO.getUserId(), reqBO.getCurrency(), reqBO.getAmount())) {
+            throw new BizErr(BALANCE_NOT_ENOUGH);
+        }
+
+        txTemplateService.doInTransaction(() -> {
+            SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
+            updateAccountFrozen(reqBO.getUserId(), reqBO.getCurrency(), reqBO.getAmount());
+            saveOrderFrozen(account, reqBO);
+            saveFrozenLog(account, reqBO);
         });
     }
 
     @Override
     public void unfrozen(UnfrozenReqBO reqBO) {
-        Long orderId   = reqBO.getOrderId();
-        String bizType = reqBO.getBizType();
-        SpotAccountLog accountLog = spotAccountLogService.getAccountLog(orderId, bizType);
-        if (accountLog == null) {
-            log.warn("There's no frozen account log for order={}", orderId);
-            throw new BizErr(UNFROZEN_ACCOUNT_FAILED);
-        }
 
-        txTemplateService.withTransaction(new TxCallback() {
-            @Override
-            public void execute() {
-                unfrozenAccount(reqBO.getUserId(), reqBO.getCurrency(), accountLog.getAmount());
-                saveUnfrozenLog(getAccount(reqBO.getUserId(), reqBO.getCurrency()), accountLog, reqBO);
-            }
+        checkUnfrozenValid(reqBO);
+
+        txTemplateService.doInTransaction(() -> {
+            SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
+            updateAccountUnfrozen(reqBO.getUserId(), reqBO.getCurrency(), reqBO.getUnfrozenAmount());
+            updateOrderFrozen(reqBO);
+            saveUnfrozenLog(account, reqBO);
         });
     }
 
@@ -114,25 +106,78 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     }
 
 
-    private void frozenAccount(long userId, String currency, BigDecimal amount) {
+    private void updateAccountFrozen(long userId, String currency, BigDecimal amount) {
         if (!SqlHelper.retBool(spotAccountMapper.frozenByUser(userId, currency, amount))) {
             log.warn("update user={} spot account with currency={} failed", userId, currency);
             throw new BizErr(FROZEN_ACCOUNT_FAILED);
         }
     }
 
-    private void unfrozenAccount(long userId, String currency, BigDecimal amount) {
+    private void updateAccountUnfrozen(long userId, String currency, BigDecimal amount) {
         if (!SqlHelper.retBool(spotAccountMapper.unfrozenByUser(userId, currency, amount))) {
             log.warn("update user={} spot account with currency={} failed", userId, currency);
             throw new BizErr(FROZEN_ACCOUNT_FAILED);
         }
     }
 
-    private void saveFrozenLog(SpotAccount account, FrozenReqBO reqBO) {
-        if (account == null) {
+    /***
+     * @Description: check订单的历史冻结是否存在并且解冻金额不能大于剩余冻结金额
+     * @date 1/22/21
+     * @Param reqBO: 解冻请求参数
+     * @return: void
+     */
+    private void checkUnfrozenValid(UnfrozenReqBO reqBO) {
+        long userId    = reqBO.getUserId();
+        long orderId   = reqBO.getOrderId();
+        String bizType = reqBO.getBizType();
+
+        Optional<SpotAccount> optAccount = getAccount(userId, reqBO.getCurrency());
+        if (!optAccount.isPresent()) {
+            log.warn("Account not exists, userId={}, currency={}", userId, reqBO.getCurrency());
             throw new BizErr(ACCOUNT_NOT_FOUND);
         }
 
+        Optional<SpotAccountFrozen> opt = spotAccountFrozenService.getUserOrderFrozen(userId, orderId, bizType);
+        if (!opt.isPresent()) {
+            log.warn("There's no frozen record for user={}, order={}, bizType={}", userId, orderId, bizType);
+            throw new BizErr(FROZEN_RECORD_NOT_FOUND);
+        }
+
+        SpotAccountFrozen frozenHistory = opt.get();
+        if (reqBO.getUnfrozenAmount().compareTo(frozenHistory.getLeftFrozen()) > 0) {
+            log.warn("User={}, order={}, bizType={}, unfrozen amount={} bigger than order left frozen amount={}",
+                    userId, orderId, bizType, reqBO.getUnfrozenAmount(), frozenHistory.getLeftFrozen());
+            throw new BizErr(UNFROZEN_ACCOUNT_FAILED);
+        }
+    }
+
+    /**
+     * @Description: save订单冻结金额
+     * @date 1/22/21
+     * @Param account:
+     * @Param reqBO:
+     * @return: void
+     */
+    private void saveOrderFrozen(SpotAccount account, FrozenReqBO reqBO) {
+        SpotAccountFrozen frozen = createOrderFrozen(account, reqBO);
+        spotAccountFrozenService.save(frozen);
+    }
+
+    /**
+     * @Description: 更新订单冻结金额
+     * @date 1/22/21
+     * @Param reqBO:
+     * @return: void
+     */
+    private void updateOrderFrozen(UnfrozenReqBO reqBO) {
+        spotAccountFrozenService.updateOrderFrozen(
+                reqBO.getUserId(),
+                reqBO.getOrderId(),
+                reqBO.getBizType(),
+                reqBO.getUnfrozenAmount());
+    }
+
+    private void saveFrozenLog(SpotAccount account, FrozenReqBO reqBO) {
         SpotAccountLog accountLog = createFrozenLog(account, reqBO);
 
         if (!spotAccountLogService.save(accountLog)) {
@@ -141,19 +186,13 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
         }
     }
 
-    private void saveUnfrozenLog(SpotAccount account, SpotAccountLog oldAccountLog, UnfrozenReqBO reqBO) {
-        if (account == null) {
-            throw new BizErr(ACCOUNT_NOT_FOUND);
-        }
-
-        SpotAccountLog newAccountLog = createUnfrozenLog(account, oldAccountLog, reqBO);
+    private void saveUnfrozenLog(SpotAccount account,  UnfrozenReqBO reqBO) {
+        SpotAccountLog newAccountLog = createUnfrozenLog(account, reqBO);
 
         if (!spotAccountLogService.save(newAccountLog)) {
             log.warn("save user={} account log failed", account);
             throw new BizErr(UNFROZEN_ACCOUNT_FAILED);
         }
     }
-
-
 
 }

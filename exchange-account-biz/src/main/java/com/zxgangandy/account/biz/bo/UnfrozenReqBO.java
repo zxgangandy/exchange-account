@@ -12,14 +12,22 @@ public class UnfrozenReqBO {
      * 订单号
      */
     private Long orderId;
+
     /**
      * 用户号
      */
     private Long userId;
+
+    /**
+     * 解冻金额
+     */
+    private BigDecimal unfrozenAmount;
+
     /**
      * 币种
      */
     private String currency;
+
     /**
      * 业务类型
      */

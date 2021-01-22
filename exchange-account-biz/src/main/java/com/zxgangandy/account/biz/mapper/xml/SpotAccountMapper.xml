@@ -3,21 +3,25 @@
 <mapper namespace="com.zxgangandy.account.biz.mapper.SpotAccountMapper">
     <update id="frozenByUser">
         update spot_account set balance = balance - #{amount}, frozen = frozen + #{amount}
-        where user_id = #{userId} and currency=#{currency} and balance >=0
+        where user_id = #{userId} and currency=#{currency}
+        and balance >= #{amount}
     </update>
 
     <update id="frozenByAccount">
         update spot_account set balance = balance - #{amount}, frozen = frozen + #{amount}
-        where account_id = #{accountId} and balance >=0
+        where account_id = #{accountId}
+        and balance >= #{amount}
     </update>
 
     <update id="unfrozenByUser">
         update spot_account set balance = balance + #{amount}, frozen = frozen - #{amount}
-        where user_id = #{userId} and currency=#{currency} and frozen >=0
+        where user_id = #{userId} and currency=#{currency}
+        and frozen >= #{amount}
     </update>
 
     <update id="unfrozenByAccount">
         update spot_account set balance = balance + #{amount}, frozen = frozen - #{amount}
-        where account_id = #{accountId} and frozen >=0
+        where account_id = #{accountId}
+        and frozen >= #{amount}
     </update>
 </mapper>

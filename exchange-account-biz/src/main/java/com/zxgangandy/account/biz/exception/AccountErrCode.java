@@ -1,21 +1,22 @@
 package com.zxgangandy.account.biz.exception;
 
-import com.zxgangandy.base.utils.exception.IBizErrCode;
+
+import io.jingwei.base.utils.exception.IBizErrCode;
 
 public enum AccountErrCode implements IBizErrCode {
-    ACCOUNT_NOT_FOUND("12000", "account-not-found"),
-    FROZEN_ACCOUNT_FAILED("12001", "frozen-account-failed"),
-    BIZ_TYPE_NOT_FOUND("12002", "biz-type-not-found"),
-    UNFROZEN_ACCOUNT_FAILED("12001", "unfrozen-account-failed"),
-    LEVEL_FEE_RATE_NOT_FOUND("12003", "level-fee-rate-not-found"),
-    SYMBOL_LOWER_THAN_MIN_VOLUME("12004", "symbol-lower-than-min-volume"),
-    SYMBOL_BIGGER_THAN_MAX_VOLUME("12005", "symbol-bigger-than-max-volume"),
-    LIMIT_ORDER_PRICE_INVALID("12006", "limit-order-price-invalid"),
-    LIMIT_STOP_ORDER_PRICE_INVALID("12007", "limit-stop-order-price-invalid"),
-    TRIGGER_PRICE_INVALID("12008", "trigger-price-invalid"),
-    ORDER_VOLUME_INVALID("12009", "order-volume-invalid"),
-    ORDER_TYPE_NOT_SUPPORT("12010", "order-type-not-support"),
-    PLACE_ORDER_FAILED("12015", "place-order-failed")
+    ACCOUNT_NOT_FOUND("12500", "account-not-found"),
+    FROZEN_ACCOUNT_FAILED("12501", "frozen-account-failed"),
+    UNFROZEN_ACCOUNT_FAILED("12502", "unfrozen-account-failed"),
+    BALANCE_NOT_ENOUGH("12503", "balance-not-enough"),
+    FROZEN_RECORD_NOT_FOUND("12504", "frozen-record-not-found"),
+    UPDATE_ORDER_FROZEN_FAILED("12505", "update-order-frozen-failed"),
+    SYMBOL_BIGGER_THAN_MAX_VOLUME("12506", "symbol-bigger-than-max-volume"),
+    LIMIT_ORDER_PRICE_INVALID("12507", "limit-order-price-invalid"),
+    LIMIT_STOP_ORDER_PRICE_INVALID("12508", "limit-stop-order-price-invalid"),
+    TRIGGER_PRICE_INVALID("12509", "trigger-price-invalid"),
+    ORDER_VOLUME_INVALID("12510", "order-volume-invalid"),
+    ORDER_TYPE_NOT_SUPPORT("12511", "order-type-not-support"),
+    PLACE_ORDER_FAILED("12512", "place-order-failed")
     ;
 
     /**
@@ -42,7 +43,8 @@ public enum AccountErrCode implements IBizErrCode {
         return desc;
     }
 
-    public String getMSg() {
+    @Override
+    public String getMsg() {
         return getClass().getName() + '.' + name();
     }
 }

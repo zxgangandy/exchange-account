@@ -3,6 +3,7 @@ package com.zxgangandy.account.model.dto;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
@@ -22,12 +23,12 @@ public class FrozenAccountReqDTO {
     /**
      * 币种
      */
-    @NotNull(message = "币种不能为空")
+    @NotEmpty(message = "币种不能为空")
     private String currency;
     /**
      * 业务类型
      */
-    @NotNull(message = "业务类型不能为空")
+    @NotEmpty(message = "业务类型不能为空")
     private String bizType;
     /**
      * 冻结数量（金额）
@@ -37,7 +38,7 @@ public class FrozenAccountReqDTO {
     /**
      * 冻结备注
      */
-    @NotNull(message = "备注不能为空")
+    @NotEmpty(message = "备注不能为空")
     private String remark;
 
 }

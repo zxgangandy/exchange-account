@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <p>
@@ -21,7 +22,7 @@ public interface ISpotAccountService extends IService<SpotAccount> {
     /**
      *  根据用户id和币种获取用户账户信息
      */
-    SpotAccount getAccount(long userId, String currency);
+    Optional<SpotAccount> getAccount(long userId, String currency);
 
     /**
      *  根据用户id获取用户账户信息列表
