@@ -11,5 +11,12 @@
 
     <artifactId>exchange-account-assembly</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.github.zxgangandy</groupId>
+            <artifactId>exchange-account-rest</artifactId>
+        </dependency>
+    </dependencies>
+
 
 </project>
