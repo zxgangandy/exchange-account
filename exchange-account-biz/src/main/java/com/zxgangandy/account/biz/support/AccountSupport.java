@@ -27,8 +27,7 @@ public class AccountSupport {
                 .setAmount(reqBO.getAmount())
                 .setBizType(reqBO.getBizType())
                 .setOrderId(reqBO.getOrderId())
-                .setCurrency(reqBO.getCurrency())
-                .setRemark(reqBO.getRemark());
+                .setCurrency(reqBO.getCurrency());
     }
 
     public static SpotAccountLog createUnfrozenLog(SpotAccount account, UnfrozenReqBO reqBO) {
@@ -40,8 +39,7 @@ public class AccountSupport {
                 .setCurrency(reqBO.getCurrency())
                 .setAmount(reqBO.getUnfrozenAmount())
                 .setBizType(reqBO.getBizType())
-                .setOrderId(reqBO.getOrderId())
-                .setRemark(reqBO.getRemark());
+                .setOrderId(reqBO.getOrderId());
     }
 
 }

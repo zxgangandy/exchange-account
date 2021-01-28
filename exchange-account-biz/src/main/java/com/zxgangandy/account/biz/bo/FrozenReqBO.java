@@ -29,9 +29,5 @@ public class FrozenReqBO {
      * 冻结数量（金额）
      */
     private BigDecimal amount;
-    /**
-     * 冻结备注
-     */
-    private String remark;
 
 }

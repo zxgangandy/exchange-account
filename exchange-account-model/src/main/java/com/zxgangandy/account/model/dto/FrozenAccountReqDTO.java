@@ -35,10 +35,5 @@ public class FrozenAccountReqDTO {
      */
     @NotNull(message = "金额不能为空")
     private BigDecimal amount;
-    /**
-     * 冻结备注
-     */
-    @NotEmpty(message = "备注不能为空")
-    private String remark;
 
 }

@@ -11,7 +11,7 @@ import java.util.Optional;
 
 /**
  * <p>
- *  服务类
+ *  整个账务系统的核心接口
  * </p>
  *
  * @author Andy
@@ -42,12 +42,12 @@ public interface ISpotAccountService extends IService<SpotAccount> {
     /**
      *  冻结用户部分资产
      */
-    void frozen(FrozenReqBO frozenAccountReqBO);
+    boolean frozen(FrozenReqBO frozenAccountReqBO);
 
     /**
      *  根据订单信息解冻账号
      */
-    void unfrozen(UnfrozenReqBO reqBO);
+    boolean unfrozen(UnfrozenReqBO reqBO);
 
 
     /**

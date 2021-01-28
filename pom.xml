@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.zxgangandy</groupId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.2-SNAPSHOT</version>
 
     <artifactId>exchange-account</artifactId>
     <packaging>pom</packaging>
@@ -28,6 +28,31 @@
         <spring-cloud.version>Hoxton.SR2</spring-cloud.version>
         <jetcache.version>2.6.0.M2</jetcache.version>
     </properties>
+
+    <developers>
+        <developer>
+            <name>zxgangandy</name>
+            <email>286505491@qq.com</email>
+            <url>https://github.com/zxgangandy/exchange-account</url>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <url>https://github.com/zxgangandy/exchange-account</url>
+        <connection>https://github.com/zxgangandy/exchange-account.git</connection>
+        <developerConnection>https://github.com/zxgangandy/exchange-account</developerConnection>
+    </scm>
 
     <dependencyManagement>
         <dependencies>
@@ -119,5 +144,121 @@
         <module>exchange-account-rest</module>
         <module>exchange-account-assembly</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>2.8.2</version>
+                        <executions>
+                            <execution>
+                                <id>default-deploy</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>deploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <version>2.5.3</version>
+                        <configuration>
+                            <mavenExecutorId>forked-path</mavenExecutorId>
+                            <useReleaseProfile>false</useReleaseProfile>
+                            <arguments>-Psonatype-oss-release</arguments>
+                            <pushChanges>false</pushChanges>
+                            <localCheckout>false</localCheckout>
+                            <autoVersionSubmodules>true</autoVersionSubmodules>
+                            <checkModificationExcludes>
+                                <checkModificationExclude>.idea/</checkModificationExclude>
+                                <checkModificationExclude>.idea/*</checkModificationExclude>
+                                <checkModificationExclude>.idea/libraries/*</checkModificationExclude>
+                                <checkModificationExclude>pom.xml</checkModificationExclude>
+                                <checkModificationExclude>release-pom.xml</checkModificationExclude>
+
+                                <checkModificationExclude>jdonframework.iml</checkModificationExclude>
+                                <checkModificationExclude>JdonAccessory/jdon-hibernate3x/jdon-hibernate3x.iml</checkModificationExclude>
+                                <checkModificationExclude>JdonAccessory/jdon-jdbc/jdon-jdbc.iml</checkModificationExclude>
+                                <checkModificationExclude>JdonAccessory/jdon-remote/jdon-remote.iml</checkModificationExclude>
+                                <checkModificationExclude>JdonAccessory/jdon-struts1x/jdon-struts1x.iml</checkModificationExclude>
+
+                            </checkModificationExcludes>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.1.2</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
+                        <configuration>
+                            <aggregate>true</aggregate>
+                            <charset>UTF-8</charset>
+                            <encoding>UTF-8</encoding>
+                            <docencoding>UTF-8</docencoding>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
