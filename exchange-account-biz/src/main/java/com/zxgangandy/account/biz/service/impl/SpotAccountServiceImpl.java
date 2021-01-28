@@ -15,6 +15,7 @@ import io.jingwei.base.utils.exception.BizErr;
 import io.jingwei.base.utils.tx.TxTemplateService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -80,26 +81,37 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
     @Override
     public boolean frozen(FrozenReqBO reqBO) {
-        if(!hasEnoughBalance(reqBO.getUserId(), reqBO.getCurrency(), reqBO.getAmount())) {
-            return false;
-        }
-
-        Optional<SpotAccountFrozen> optFrozen = spotAccountFrozenService.getUserOrderFrozen(
-                reqBO.getUserId(), reqBO.getOrderId(), reqBO.getBizType());
-        if (optFrozen.isPresent()) {
-            log.warn("Frozen already present: user={} order={}, bizType={}",
-                    reqBO.getUserId(),
-                    reqBO.getOrderId(),
-                    reqBO.getBizType());
-            return true;
-        }
 
         return txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
+            boolean accountFrozen;
+            boolean saveOrderFrozen;
+            boolean saveFrozenLog;
 
-            return updateAccountFrozen(reqBO)
-                    & saveOrderFrozen(account, reqBO)
-                    & saveFrozenLog(account, reqBO);
+            accountFrozen = updateAccountFrozen(reqBO);
+            if (!accountFrozen) {
+                log.info("update account frozen failed, account={}, reqBO={}", account, reqBO);
+                return false;
+            }
+
+            try {
+                saveOrderFrozen = saveOrderFrozen(account, reqBO);
+            } catch (DuplicateKeyException ex) {
+                log.info("repeatedly frozen account={} by order={}", account, reqBO);
+                return true;
+            }
+
+            if (!saveOrderFrozen) {
+                throw new BizErr(SAVE_ORDER_FROZEN_FAILED);
+            }
+
+            saveFrozenLog = saveFrozenLog(account, reqBO);
+            if (!saveFrozenLog) {
+                throw new BizErr(SAVE_FROZEN_LOG_FAILED);
+            }
+
+            log.info("frozen account={} by order={} success", account, reqBO);
+            return true;
         });
     }
 
