@@ -5,7 +5,7 @@
     <parent>
         <artifactId>exchange-account</artifactId>
         <groupId>io.github.zxgangandy</groupId>
-        <version>1.0.2-SNAPSHOT</version>
+        <version>1.0.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -21,7 +21,6 @@
         <dependency>
             <groupId>io.github.zxgangandy</groupId>
             <artifactId>exchange-account-model</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.github.zxgangandy</groupId>
