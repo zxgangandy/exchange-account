@@ -5,6 +5,7 @@ import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
 import com.zxgangandy.account.biz.entity.SpotAccount;
 import com.zxgangandy.account.biz.entity.SpotAccountFrozen;
 import com.zxgangandy.account.biz.entity.SpotAccountLog;
+import com.zxgangandy.account.biz.entity.SpotAccountUnfrozen;
 
 public class AccountSupport {
 
@@ -25,6 +26,8 @@ public class AccountSupport {
                 .setFromUserId(reqBO.getUserId())
                 .setToUserId(reqBO.getUserId())
                 .setAmount(reqBO.getAmount())
+                .setBalance(account.getBalance())
+                .setFrozen(account.getFrozen())
                 .setBizType(reqBO.getBizType())
                 .setOrderId(reqBO.getOrderId())
                 .setCurrency(reqBO.getCurrency());
@@ -38,8 +41,24 @@ public class AccountSupport {
                 .setToUserId(reqBO.getUserId())
                 .setCurrency(reqBO.getCurrency())
                 .setAmount(reqBO.getUnfrozenAmount())
+                .setBalance(account.getBalance())
+                .setFrozen(account.getFrozen())
                 .setBizType(reqBO.getBizType())
                 .setOrderId(reqBO.getOrderId());
+    }
+
+    public static SpotAccountUnfrozen createOrderUnfrozen(SpotAccountFrozen accountFrozen, UnfrozenReqBO reqBO) {
+        return new SpotAccountUnfrozen()
+                .setBizId(reqBO.getBizId())
+                .setBizType(reqBO.getBizType())
+                .setUnfrozen(reqBO.getUnfrozenAmount())
+                .setUserId(reqBO.getUserId())
+                .setCurrency(reqBO.getCurrency())
+                .setOrderId(reqBO.getOrderId())
+                .setAccountId(accountFrozen.getAccountId())
+                .setOriginFrozen(accountFrozen.getOriginFrozen())
+                .setLeftFrozen(accountFrozen.getLeftFrozen());
+
     }
 
 }

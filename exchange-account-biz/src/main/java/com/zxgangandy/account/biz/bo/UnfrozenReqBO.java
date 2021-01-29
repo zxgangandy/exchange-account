@@ -29,13 +29,13 @@ public class UnfrozenReqBO {
     private String currency;
 
     /**
+     * 业务ID
+     */
+    private Long bizId;
+
+    /**
      * 业务类型
      */
     private String bizType;
-
-    /**
-     * 冻结备注
-     */
-    private String remark;
 
 }

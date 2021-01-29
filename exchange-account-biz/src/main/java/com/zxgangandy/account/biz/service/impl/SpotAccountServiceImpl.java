@@ -7,22 +7,19 @@ import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
 import com.zxgangandy.account.biz.entity.SpotAccount;
 import com.zxgangandy.account.biz.entity.SpotAccountFrozen;
 import com.zxgangandy.account.biz.entity.SpotAccountLog;
+import com.zxgangandy.account.biz.entity.SpotAccountUnfrozen;
 import com.zxgangandy.account.biz.mapper.SpotAccountMapper;
-import com.zxgangandy.account.biz.service.ISpotAccountFrozenService;
-import com.zxgangandy.account.biz.service.ISpotAccountLogService;
-import com.zxgangandy.account.biz.service.ISpotAccountService;
-import io.jingwei.base.utils.exception.BizErr;
+import com.zxgangandy.account.biz.service.*;
+import io.jingwei.base.utils.exception.SysErr;
 import io.jingwei.base.utils.tx.TxTemplateService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static com.zxgangandy.account.biz.exception.AccountErrCode.*;
 import static com.zxgangandy.account.biz.support.AccountSupport.*;
 
 /**
@@ -38,10 +35,12 @@ import static com.zxgangandy.account.biz.support.AccountSupport.*;
 @AllArgsConstructor
 @Slf4j
 public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotAccount> implements ISpotAccountService {
-    private final TxTemplateService         txTemplateService;
-    private final ISpotAccountLogService    spotAccountLogService;
-    private final SpotAccountMapper         spotAccountMapper;
-    private final ISpotAccountFrozenService spotAccountFrozenService;
+    private final TxTemplateService             txTemplateService;
+    private final ISpotAccountLogService        spotAccountLogService;
+    private final SpotAccountMapper             spotAccountMapper;
+    private final ISpotAccountFrozenService     spotAccountFrozenService;
+    private final ISpotAccountUnfrozenService   spotAccountUnfrozenService;
+    private final ISpotAccountIdempotentService spotAccountIdempotentService;
 
     @Override
     public Optional<SpotAccount> getAccount(long userId, String currency) {
@@ -79,38 +78,42 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
                 .last(" for update").one();
     }
 
+    /**
+     * @Description: 冻结用户资金
+     * （不做查询的原因：1. App或者前端可以做余额判断； 2.大部分情况是余额足够下的单）
+     *
+     * @date 1/29/21
+     * @Param reqBO:
+     * @return: boolean
+     */
     @Override
     public boolean frozen(FrozenReqBO reqBO) {
 
         return txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
-            boolean accountFrozen;
-            boolean saveOrderFrozen;
-            boolean saveFrozenLog;
 
-            accountFrozen = updateAccountFrozen(reqBO);
-            if (!accountFrozen) {
-                log.info("update account frozen failed, account={}, reqBO={}", account, reqBO);
-                return false;
-            }
-
-            try {
-                saveOrderFrozen = saveOrderFrozen(account, reqBO);
-            } catch (DuplicateKeyException ex) {
-                log.info("repeatedly frozen account={} by order={}", account, reqBO);
+            if (checkFrozenIdempotent(reqBO.getBizType()+"_" + reqBO.getOrderId())) {
+                log.warn("Frozen order idempotent, account={}, reqBO={}", account, reqBO);
                 return true;
             }
 
-            if (!saveOrderFrozen) {
-                throw new BizErr(SAVE_ORDER_FROZEN_FAILED);
+            if (!updateAccountFrozen(reqBO)) {
+                log.warn("Update account frozen failed, account={}, reqBO={}", account, reqBO);
+                return false;
             }
 
-            saveFrozenLog = saveFrozenLog(account, reqBO);
-            if (!saveFrozenLog) {
-                throw new BizErr(SAVE_FROZEN_LOG_FAILED);
+            if (!saveOrderFrozen(account, reqBO)) {
+                log.error("Save frozen order failed, account={} by order={}", account, reqBO);
+                throw new SysErr();
             }
 
-            log.info("frozen account={} by order={} success", account, reqBO);
+            Optional<SpotAccount> optAccount = getAccount(reqBO.getUserId(), reqBO.getCurrency());
+            if (!saveAccountFrozenLog(optAccount.get(), reqBO)) {
+                log.error("Save frozen log failed, account={} by order={}", account, reqBO);
+                throw new SysErr();
+            }
+
+            log.info("Frozen account={} by order={} success", account, reqBO);
             return true;
         });
     }
@@ -118,13 +121,35 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     @Override
     public boolean unfrozen(UnfrozenReqBO reqBO) {
 
-        checkUnfrozenValid(reqBO);
-
         return txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
-            updateAccountUnfrozen(reqBO.getUserId(), reqBO.getCurrency(), reqBO.getUnfrozenAmount());
-            updateOrderFrozen(reqBO);
-            saveUnfrozenLog(account, reqBO);
+
+            if (checkFrozenIdempotent(reqBO.getBizType()+"_" + reqBO.getBizId())) {
+                log.warn("Unfrozen order idempotent, account={}, reqBO={}", account, reqBO);
+                return true;
+            }
+
+            if (!updateAccountUnfrozen(reqBO)) {
+                log.warn("update account unfrozen failed, account={}, reqBO={}", account, reqBO);
+                return false;
+            }
+
+            if (!updateOrderUnfrozen(reqBO)) {
+                log.warn("update order unfrozen failed, account={}, reqBO={}", account, reqBO);
+                return false;
+            }
+
+            SpotAccountFrozen accountFrozen = getUserOrderFrozen(reqBO);
+            if (!saveOrderUnfrozenDetail(accountFrozen, reqBO)) {
+                log.error("save order unfrozen detail failed, order frozen={}, reqBO={}", accountFrozen, reqBO);
+                throw new SysErr();
+            }
+
+            Optional<SpotAccount> optAccount = getAccount(reqBO.getUserId(), reqBO.getCurrency());
+            if (!saveAccountUnfrozenLog(optAccount.get(), reqBO)) {
+                log.error("Save unfrozen log failed, account={} by order={}", account, reqBO);
+                throw new SysErr();
+            }
 
             return true;
         });
@@ -136,46 +161,30 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     }
 
 
-    private boolean updateAccountFrozen(FrozenReqBO reqBO) {
-        return SqlHelper.retBool(spotAccountMapper.frozenByUser(reqBO.getUserId(), reqBO.getCurrency(), reqBO.getAmount()));
+    private boolean checkFrozenIdempotent(String bizId) {
+        return spotAccountIdempotentService.checkIdempotent(bizId);
     }
 
-    private void updateAccountUnfrozen(long userId, String currency, BigDecimal amount) {
-        if (!SqlHelper.retBool(spotAccountMapper.unfrozenByUser(userId, currency, amount))) {
-            log.warn("update user={}, currency={} account unfrozen failed", userId, currency);
-            throw new BizErr(UNFROZEN_ACCOUNT_FAILED);
-        }
-    }
-
-    /***
-     * @Description: check订单的历史冻结是否存在并且解冻金额不能大于剩余冻结金额
-     * @date 1/22/21
-     * @Param reqBO: 解冻请求参数
-     * @return: void
+    /**
+     * @Description: 更新账户的冻结金额
+     * @date 1/29/21
+     * @Param reqBO:
+     * @return: boolean
      */
-    private void checkUnfrozenValid(UnfrozenReqBO reqBO) {
-        long userId    = reqBO.getUserId();
-        long orderId   = reqBO.getOrderId();
-        String bizType = reqBO.getBizType();
+    private boolean updateAccountFrozen(FrozenReqBO reqBO) {
+        return SqlHelper.retBool(spotAccountMapper.frozenByUser(reqBO.getUserId(),
+                reqBO.getCurrency(), reqBO.getAmount()));
+    }
 
-        Optional<SpotAccount> optAccount = getAccount(userId, reqBO.getCurrency());
-        if (!optAccount.isPresent()) {
-            log.warn("Account not exists, userId={}, currency={}", userId, reqBO.getCurrency());
-            throw new BizErr(ACCOUNT_NOT_FOUND);
-        }
-
-        Optional<SpotAccountFrozen> opt = spotAccountFrozenService.getUserOrderFrozen(userId, orderId, bizType);
-        if (!opt.isPresent()) {
-            log.warn("There's no frozen record for user={}, order={}, bizType={}", userId, orderId, bizType);
-            throw new BizErr(FROZEN_RECORD_NOT_FOUND);
-        }
-
-        SpotAccountFrozen frozenHistory = opt.get();
-        if (reqBO.getUnfrozenAmount().compareTo(frozenHistory.getLeftFrozen()) > 0) {
-            log.warn("User={}, order={}, bizType={}, unfrozen amount={} bigger than order left frozen amount={}",
-                    userId, orderId, bizType, reqBO.getUnfrozenAmount(), frozenHistory.getLeftFrozen());
-            throw new BizErr(UNFROZEN_AMOUNT_INVALID);
-        }
+    /**
+     * @Description: 更新账户的解冻金额
+     * @date 1/29/21
+     * @Param reqBO:
+     * @return: boolean
+     */
+    private boolean updateAccountUnfrozen(UnfrozenReqBO reqBO) {
+        return SqlHelper.retBool(spotAccountMapper.unfrozenByUser(reqBO.getUserId(),
+                reqBO.getCurrency(), reqBO.getUnfrozenAmount()));
     }
 
     /**
@@ -192,12 +201,12 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     }
 
     /**
-     * @Description: 更新订单冻结金额
+     * @Description: 更新订单当前剩余冻结金额
      * @date 1/22/21
      * @Param reqBO:
      * @return: void
      */
-    private boolean updateOrderFrozen(UnfrozenReqBO reqBO) {
+    private boolean updateOrderUnfrozen(UnfrozenReqBO reqBO) {
         return spotAccountFrozenService.updateOrderFrozen(
                 reqBO.getUserId(),
                 reqBO.getOrderId(),
@@ -206,32 +215,51 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     }
 
     /**
-     * @Description: save冻结log
+     * @Description: 获取订单的历史冻结记录
+     * @date 1/29/21
+     * @Param reqBO:
+     * @return: com.zxgangandy.account.biz.entity.SpotAccountFrozen
+     */
+    private SpotAccountFrozen getUserOrderFrozen(UnfrozenReqBO reqBO) {
+        return spotAccountFrozenService.getUserOrderFrozen(reqBO.getUserId(), reqBO.getOrderId(), reqBO.getBizType()).get();
+    }
+
+    /**
+     * @Description: 保存订单的解冻明细
+     * @date 1/29/21
+     * @Param accountFrozen:
+     * @Param reqBO:
+     * @return: boolean
+     */
+    private boolean saveOrderUnfrozenDetail(SpotAccountFrozen accountFrozen, UnfrozenReqBO reqBO) {
+        SpotAccountUnfrozen unfrozen = createOrderUnfrozen(accountFrozen, reqBO);
+        return spotAccountUnfrozenService.save(unfrozen);
+    }
+
+    /**
+     * @Description: save账户的冻结日志
      * @date 1/22/21
      * @Param account:
      * @Param reqBO:
      * @return: void
      */
-    private boolean saveFrozenLog(SpotAccount account, FrozenReqBO reqBO) {
+    private boolean saveAccountFrozenLog(SpotAccount account, FrozenReqBO reqBO) {
         SpotAccountLog accountLog = createFrozenLog(account, reqBO);
 
         return spotAccountLogService.save(accountLog);
     }
 
     /**
-     * @Description: save解冻log
+     * @Description: 保存账户的解冻日志
      * @date 1/22/21
      * @Param account:
      * @Param reqBO:
      * @return: void
      */
-    private void saveUnfrozenLog(SpotAccount account,  UnfrozenReqBO reqBO) {
+    private boolean saveAccountUnfrozenLog(SpotAccount account,  UnfrozenReqBO reqBO) {
         SpotAccountLog newAccountLog = createUnfrozenLog(account, reqBO);
 
-        if (!spotAccountLogService.save(newAccountLog)) {
-            log.warn("save user={} account log failed", account);
-            throw new BizErr(SAVE_UNFROZEN_LOG_FAILED);
-        }
+        return  spotAccountLogService.save(newAccountLog);
     }
 
 }
