@@ -120,7 +120,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
     @Override
     public boolean unfrozen(UnfrozenReqBO reqBO) {
-
         return txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
 
