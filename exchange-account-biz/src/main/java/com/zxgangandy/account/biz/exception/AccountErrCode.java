@@ -5,8 +5,8 @@ import io.jingwei.base.utils.exception.IBizErrCode;
 
 public enum AccountErrCode implements IBizErrCode {
     ACCOUNT_NOT_FOUND("12500", "account-not-found"),
-    FROZEN_ACCOUNT_FAILED("12501", "frozen-account-failed"),
-    UNFROZEN_ACCOUNT_FAILED("12502", "unfrozen-account-failed"),
+    DUPLICATE_FROZEN_ACCOUNT("12501", "duplicate-frozen-account"),
+    DUPLICATE_UNFROZEN_ACCOUNT("12502", "duplicate-unfrozen-account"),
     BALANCE_NOT_ENOUGH("12503", "balance-not-enough"),
     FROZEN_RECORD_NOT_FOUND("12504", "frozen-record-not-found"),
     UPDATE_ORDER_FROZEN_FAILED("12505", "update-order-frozen-failed"),

@@ -10,16 +10,20 @@ import com.zxgangandy.account.biz.entity.SpotAccountLog;
 import com.zxgangandy.account.biz.entity.SpotAccountUnfrozen;
 import com.zxgangandy.account.biz.mapper.SpotAccountMapper;
 import com.zxgangandy.account.biz.service.*;
+import io.jingwei.base.utils.exception.BizErr;
 import io.jingwei.base.utils.exception.SysErr;
 import io.jingwei.base.utils.tx.TxTemplateService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import static com.zxgangandy.account.biz.exception.AccountErrCode.DUPLICATE_FROZEN_ACCOUNT;
+import static com.zxgangandy.account.biz.exception.AccountErrCode.DUPLICATE_UNFROZEN_ACCOUNT;
 import static com.zxgangandy.account.biz.support.AccountSupport.*;
 
 /**
@@ -40,7 +44,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     private final SpotAccountMapper             spotAccountMapper;
     private final ISpotAccountFrozenService     spotAccountFrozenService;
     private final ISpotAccountUnfrozenService   spotAccountUnfrozenService;
-    private final ISpotAccountIdempotentService spotAccountIdempotentService;
 
     @Override
     public Optional<SpotAccount> getAccount(long userId, String currency) {
@@ -92,19 +95,18 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
         return txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
 
-            if (checkFrozenIdempotent(reqBO.getBizType()+"_" + reqBO.getOrderId())) {
-                log.warn("Frozen order idempotent, account={}, reqBO={}", account, reqBO);
-                return true;
-            }
-
             if (!updateAccountFrozen(reqBO)) {
                 log.warn("Update account frozen failed, account={}, reqBO={}", account, reqBO);
                 return false;
             }
 
-            if (!saveOrderFrozen(account, reqBO)) {
-                log.error("Save frozen order failed, account={} by order={}", account, reqBO);
-                throw new SysErr();
+            try{
+                if (!saveOrderFrozen(account, reqBO)) {
+                    log.error("Save frozen order failed, account={} by order={}", account, reqBO);
+                    throw new SysErr();
+                }
+            } catch (DuplicateKeyException ex) {
+                throw new BizErr(DUPLICATE_FROZEN_ACCOUNT);
             }
 
             Optional<SpotAccount> optAccount = getAccount(reqBO.getUserId(), reqBO.getCurrency());
@@ -123,11 +125,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
         return txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
 
-            if (checkFrozenIdempotent(reqBO.getBizType()+"_" + reqBO.getBizId())) {
-                log.warn("Unfrozen order idempotent, account={}, reqBO={}", account, reqBO);
-                return true;
-            }
-
             if (!updateAccountUnfrozen(reqBO)) {
                 log.warn("update account unfrozen failed, account={}, reqBO={}", account, reqBO);
                 return false;
@@ -139,9 +136,14 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
             }
 
             SpotAccountFrozen accountFrozen = getUserOrderFrozen(reqBO);
-            if (!saveOrderUnfrozenDetail(accountFrozen, reqBO)) {
-                log.error("save order unfrozen detail failed, order frozen={}, reqBO={}", accountFrozen, reqBO);
-                throw new SysErr();
+
+            try {
+                if (!saveOrderUnfrozenDetail(accountFrozen, reqBO)) {
+                    log.error("save order unfrozen detail failed, order frozen={}, reqBO={}", accountFrozen, reqBO);
+                    throw new SysErr();
+                }
+            } catch (DuplicateKeyException ex) {
+                throw new BizErr(DUPLICATE_UNFROZEN_ACCOUNT);
             }
 
             Optional<SpotAccount> optAccount = getAccount(reqBO.getUserId(), reqBO.getCurrency());
@@ -157,11 +159,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     @Override
     public void transfer() {
 
-    }
-
-
-    private boolean checkFrozenIdempotent(String bizId) {
-        return spotAccountIdempotentService.checkIdempotent(bizId);
     }
 
     /**
