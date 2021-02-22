@@ -22,8 +22,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static com.zxgangandy.account.biz.exception.AccountErrCode.DUPLICATE_FROZEN_ACCOUNT;
-import static com.zxgangandy.account.biz.exception.AccountErrCode.DUPLICATE_UNFROZEN_ACCOUNT;
+import static com.zxgangandy.account.base.exception.AccountErrCode.DUPLICATE_FROZEN_ACCOUNT;
+import static com.zxgangandy.account.base.exception.AccountErrCode.DUPLICATE_UNFROZEN_ACCOUNT;
 import static com.zxgangandy.account.biz.support.AccountSupport.*;
 
 /**

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.zxgangandy</groupId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.4-SNAPSHOT</version>
 
     <artifactId>exchange-account</artifactId>
     <packaging>pom</packaging>
@@ -26,7 +26,6 @@
         <commons-lang3.version>3.9</commons-lang3.version>
         <spring-cloud-starter-feign.version>2.2.0.RELEASE</spring-cloud-starter-feign.version>
         <spring-cloud.version>Hoxton.SR2</spring-cloud.version>
-        <jetcache.version>2.6.0.M2</jetcache.version>
     </properties>
 
     <developers>
@@ -112,12 +111,6 @@
             </dependency>
 
             <dependency>
-                <groupId>com.alicp.jetcache</groupId>
-                <artifactId>jetcache-starter-redis</artifactId>
-                <version>${jetcache.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>io.github.zxgangandy</groupId>
                 <artifactId>exchange-account-biz</artifactId>
                 <version>${project.version}</version>
@@ -132,6 +125,12 @@
             <dependency>
                 <groupId>io.github.zxgangandy</groupId>
                 <artifactId>exchange-account-model</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.zxgangandy</groupId>
+                <artifactId>exchange-account-base</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -168,6 +167,7 @@
         <module>exchange-account-model</module>
         <module>exchange-account-rest</module>
         <module>exchange-account-assembly</module>
+        <module>exchange-account-base</module>
     </modules>
 
     <profiles>

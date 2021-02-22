@@ -9,7 +9,14 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>exchange-account-model</artifactId>
+    <artifactId>exchange-account-base</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.github.zxgangandy</groupId>
+            <artifactId>base-utils</artifactId>
+            <version>1.0.5</version>
+        </dependency>
+    </dependencies>
 
 </project>

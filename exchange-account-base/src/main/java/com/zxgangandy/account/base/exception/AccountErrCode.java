@@ -1,4 +1,4 @@
-package com.zxgangandy.account.biz.exception;
+package com.zxgangandy.account.base.exception;
 
 
 import io.jingwei.base.utils.exception.IBizErrCode;
