@@ -9,7 +9,7 @@ import com.zxgangandy.account.biz.entity.SpotAccountUnfrozen;
 
 public class AccountSupport {
 
-    public static SpotAccountFrozen createOrderFrozen(SpotAccount account, FrozenReqBO reqBO) {
+    public static SpotAccountFrozen createOrderFrozen(long accountId, FrozenReqBO reqBO) {
         return new SpotAccountFrozen()
                 .setUserId(reqBO.getUserId())
                 .setOrderId(reqBO.getOrderId())
@@ -17,7 +17,7 @@ public class AccountSupport {
                 .setCurrency(reqBO.getCurrency())
                 .setOriginFrozen(reqBO.getAmount())
                 .setLeftFrozen(reqBO.getAmount())
-                .setAccountId(account.getAccountId());
+                .setAccountId(accountId);
     }
     public static SpotAccountLog createFrozenLog(SpotAccount account, FrozenReqBO reqBO) {
         return new SpotAccountLog()

@@ -42,12 +42,12 @@ public interface ISpotAccountService extends IService<SpotAccount> {
     /**
      *  冻结用户部分资产
      */
-    boolean frozen(FrozenReqBO frozenAccountReqBO);
+    void frozen(FrozenReqBO frozenAccountReqBO);
 
     /**
      *  根据订单信息解冻账号
      */
-    boolean unfrozen(UnfrozenReqBO reqBO);
+    void unfrozen(UnfrozenReqBO reqBO);
 
 
     /**
