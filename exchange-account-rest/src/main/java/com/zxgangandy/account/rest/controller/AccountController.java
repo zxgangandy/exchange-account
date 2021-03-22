@@ -29,9 +29,9 @@ public class AccountController {
 
     @PostMapping(V_1 + "/account/frozen")
     public R<FrozenAccountRespDTO> frozenAccount(@RequestBody @Valid FrozenAccountReqDTO req) {
-        boolean result = spotAccountService.frozen(frozenReqConverter.to(req));
+        spotAccountService.frozen(frozenReqConverter.to(req));
 
-        return R.ok(new FrozenAccountRespDTO().setOrderId(req.getOrderId()).setResult(result));
+        return R.ok(new FrozenAccountRespDTO().setOrderId(req.getOrderId()).setResult(true));
     }
 
     @PostMapping(V_1 + "/account/unfrozen")
