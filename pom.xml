@@ -8,6 +8,7 @@
 
     <artifactId>exchange-account</artifactId>
     <packaging>pom</packaging>
+    <name>exchange-account</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -27,6 +28,16 @@
         <spring-cloud-starter-feign.version>2.2.0.RELEASE</spring-cloud-starter-feign.version>
         <spring-cloud.version>Hoxton.SR2</spring-cloud.version>
     </properties>
+
+    <description>https://github.com/zxgangandy/exchange-account</description>
+    <url>https://github.com/zxgangandy/exchange-account</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
 
     <developers>
         <developer>
