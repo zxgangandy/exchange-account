@@ -42,4 +42,30 @@ public interface SpotAccountMapper extends BaseMapper<SpotAccount> {
     int unfrozenByAccount(@Param("accountId") long accountId,
                         @Param("amount") BigDecimal amount);
 
+    /**
+     * 根据用户uid和currency入金
+     */
+    int depositByUser(@Param("userId") long userId,
+                     @Param("currency") String currency,
+                     @Param("amount") BigDecimal amount);
+
+    /**
+     * 根据用户账户id入金
+     */
+    int depositByAccount(@Param("accountId") long accountId,
+                        @Param("amount") BigDecimal amount);
+
+    /**
+     * 根据用户uid和currency出金
+     */
+    int withdrawByUser(@Param("userId") long userId,
+                      @Param("currency") String currency,
+                      @Param("amount") BigDecimal amount);
+
+    /**
+     * 根据用户账户id出金
+     */
+    int withdrawByAccount(@Param("accountId") long accountId,
+                         @Param("amount") BigDecimal amount);
+
 }

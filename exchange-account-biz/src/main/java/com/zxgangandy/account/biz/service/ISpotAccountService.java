@@ -1,7 +1,9 @@
 package com.zxgangandy.account.biz.service;
 
+import com.zxgangandy.account.biz.bo.DepositReqBO;
 import com.zxgangandy.account.biz.bo.FrozenReqBO;
 import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
+import com.zxgangandy.account.biz.bo.WithdrawReqBO;
 import com.zxgangandy.account.biz.entity.SpotAccount;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -51,8 +53,19 @@ public interface ISpotAccountService extends IService<SpotAccount> {
 
 
     /**
-     *  转账
+     * @Description: 入金
+     * @date 3/30/21
+     * @Param reqBO:
+     * @return: void
      */
-    void transfer();
+    void deposit(DepositReqBO reqBO) ;
+
+    /**
+     * @Description: 出金
+     * @date 3/30/21
+     * @Param reqBO:
+     * @return: void
+     */
+    void withdraw(WithdrawReqBO reqBO);
 
 }
