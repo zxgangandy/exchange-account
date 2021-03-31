@@ -4,6 +4,7 @@ import com.zxgangandy.account.biz.bo.DepositReqBO;
 import com.zxgangandy.account.biz.bo.FrozenReqBO;
 import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
 import com.zxgangandy.account.biz.bo.WithdrawReqBO;
+import com.zxgangandy.account.biz.constant.enums.TradeType;
 import com.zxgangandy.account.biz.entity.*;
 
 public class AccountSupport {
@@ -26,7 +27,9 @@ public class AccountSupport {
                 .setFromUserId(reqBO.getUserId())
                 .setToUserId(reqBO.getUserId())
                 .setAmount(reqBO.getAmount())
+                .setBeforeBalance(account.getBalance())
                 .setBalance(account.getBalance().subtract(reqBO.getAmount()))
+                .setBeforeFrozen(account.getFrozen())
                 .setFrozen(account.getFrozen().add(reqBO.getAmount()))
                 .setBizType(reqBO.getBizType())
                 .setOrderId(reqBO.getOrderId())
@@ -41,7 +44,9 @@ public class AccountSupport {
                 .setToUserId(reqBO.getUserId())
                 .setCurrency(reqBO.getCurrency())
                 .setAmount(reqBO.getUnfrozenAmount())
+                .setBeforeBalance(account.getBalance())
                 .setBalance(account.getBalance().add(reqBO.getUnfrozenAmount()))
+                .setBeforeFrozen(account.getFrozen())
                 .setFrozen(account.getFrozen().subtract(reqBO.getUnfrozenAmount()))
                 .setBizType(reqBO.getBizType())
                 .setOrderId(reqBO.getOrderId());
@@ -61,15 +66,16 @@ public class AccountSupport {
 
     }
 
-    public static SpotAccountDeposit createOrderDeposit(SpotAccount account, DepositReqBO reqBO) {
-        return new SpotAccountDeposit()
+    public static SpotAccountTrade createOrderDeposit(SpotAccount account, DepositReqBO reqBO) {
+        return new SpotAccountTrade()
                 .setUserId(reqBO.getUserId())
                 .setOrderId(reqBO.getOrderId())
                 .setBizType(reqBO.getBizType())
                 .setCurrency(reqBO.getCurrency())
-                .setBeforeDeposit(account.getBalance())
-                .setDeposit(reqBO.getAmount())
-                .setAfterDeposit(account.getBalance().add(reqBO.getAmount()));
+                .setTradeType(TradeType.IN.getType())
+                .setBeforeBalance(account.getBalance())
+                .setAmount(reqBO.getAmount())
+                .setAfterBalance(account.getBalance().add(reqBO.getAmount()));
     }
 
     public static SpotAccountLog createDepositLog(SpotAccount account, DepositReqBO reqBO) {
@@ -79,22 +85,25 @@ public class AccountSupport {
                 .setFromUserId(reqBO.getUserId())
                 .setToUserId(reqBO.getUserId())
                 .setAmount(reqBO.getAmount())
+                .setBeforeBalance(account.getBalance())
                 .setBalance(account.getBalance().add(reqBO.getAmount()))
                 .setFrozen(account.getFrozen())
+                .setBeforeFrozen(account.getFrozen())
                 .setBizType(reqBO.getBizType())
                 .setOrderId(reqBO.getOrderId())
                 .setCurrency(reqBO.getCurrency());
     }
 
-    public static SpotAccountWithdraw createOrderWithdraw(SpotAccount account, WithdrawReqBO reqBO) {
-        return new SpotAccountWithdraw()
+    public static SpotAccountTrade createOrderWithdraw(SpotAccount account, WithdrawReqBO reqBO) {
+        return new SpotAccountTrade()
                 .setUserId(reqBO.getUserId())
                 .setOrderId(reqBO.getOrderId())
                 .setBizType(reqBO.getBizType())
                 .setCurrency(reqBO.getCurrency())
-                .setBeforeWithdraw(account.getBalance())
-                .setWithdraw(reqBO.getAmount())
-                .setAfterWithdraw(account.getBalance().subtract(reqBO.getAmount()));
+                .setTradeType(TradeType.OUT.getType())
+                .setBeforeBalance(account.getBalance())
+                .setAmount(reqBO.getAmount())
+                .setAfterBalance(account.getBalance().subtract(reqBO.getAmount()));
     }
 
     public static SpotAccountLog createWithdrawLog(SpotAccount account, WithdrawReqBO reqBO) {
@@ -104,11 +113,15 @@ public class AccountSupport {
                 .setFromUserId(reqBO.getUserId())
                 .setToUserId(reqBO.getUserId())
                 .setAmount(reqBO.getAmount())
+                .setBeforeBalance(account.getBalance())
                 .setBalance(account.getBalance().subtract(reqBO.getAmount()))
                 .setFrozen(account.getFrozen())
+                .setBeforeFrozen(account.getFrozen())
                 .setBizType(reqBO.getBizType())
                 .setOrderId(reqBO.getOrderId())
                 .setCurrency(reqBO.getCurrency());
     }
+
+
 
 }

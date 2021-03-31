@@ -41,8 +41,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     private final SpotAccountMapper             spotAccountMapper;
     private final ISpotAccountFrozenService     spotAccountFrozenService;
     private final ISpotAccountUnfrozenService   spotAccountUnfrozenService;
-    private final ISpotAccountDepositService    spotAccountDepositService;
-    private final ISpotAccountWithdrawService   spotAccountWithdrawService;
+    private final ISpotAccountTradeService      spotAccountTradeService;
 
     @Override
     public Optional<SpotAccount> getAccount(long userId, String currency) {
@@ -326,9 +325,9 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
      * @return: void
      */
     private boolean saveOrderDeposit(SpotAccount account, DepositReqBO reqBO) {
-        SpotAccountDeposit deposit = createOrderDeposit(account, reqBO);
+        SpotAccountTrade deposit = createOrderDeposit(account, reqBO);
 
-        return spotAccountDepositService.save(deposit);
+        return spotAccountTradeService.save(deposit);
     }
 
     private boolean updateAccountWithdraw(WithdrawReqBO reqBO) {
@@ -344,9 +343,9 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
      * @return: void
      */
     private boolean saveOrderWithdraw(SpotAccount account, WithdrawReqBO reqBO) {
-        SpotAccountWithdraw withdraw = createOrderWithdraw(account, reqBO);
+        SpotAccountTrade withdraw = createOrderWithdraw(account, reqBO);
 
-        return spotAccountWithdrawService.save(withdraw);
+        return spotAccountTradeService.save(withdraw);
     }
 
     /**
