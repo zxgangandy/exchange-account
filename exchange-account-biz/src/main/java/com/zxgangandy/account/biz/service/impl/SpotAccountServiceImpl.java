@@ -14,6 +14,7 @@ import io.jingwei.base.utils.exception.SysErr;
 import io.jingwei.base.utils.tx.TxTemplateService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -89,7 +90,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
      */
     @Override
     public void frozen(FrozenReqBO reqBO) {
-        log.info("frozen=>reqBO={}", reqBO);
+        log.info("[[begin frozen]]: reqBO={}", reqBO);
 
         txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
@@ -97,24 +98,28 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
                 throw new BizErr(ACCOUNT_NOT_FOUND);
             }
 
-            log.info("frozen=>account={}", account);
+            log.info("frozen locked account={}", account);
 
             if (!updateAccountFrozen(reqBO)) {
-                log.warn("Update account frozen failed, account={}, reqBO={}", account, reqBO);
+                log.warn("update account frozen failed, account={}, reqBO={}", account, reqBO);
                 throw new BizErr(BALANCE_NOT_ENOUGH);
             }
 
-            if (!saveOrderFrozen(account, reqBO)) {
-                log.error("Save frozen order failed, account={} by order={}", account, reqBO);
-                throw new SysErr();
+            try {
+                if (!saveOrderFrozen(account, reqBO)) {
+                    log.error("save frozen order failed, account={} by order={}", account, reqBO);
+                    throw new SysErr();
+                }
+            } catch (DuplicateKeyException ex) {
+                throw new BizErr(ORDER_DUPLICATE_FROZEN);
             }
 
             if (!saveAccountFrozenLog(account, reqBO)) {
-                log.error("Save frozen log failed, account={} by order={}", account, reqBO);
+                log.error("save frozen log failed, account={} by order={}", account, reqBO);
                 throw new SysErr();
             }
 
-            log.info("Frozen account={} by order={} success", account, reqBO);
+            log.info("[[end frozen]]: account={} by order={} success", account, reqBO);
         });
     }
 
@@ -153,13 +158,18 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
             }
 
             SpotAccountFrozen accountFrozen = accountFrozenOpt.get();
-            if (!saveOrderUnfrozenDetail(accountFrozen, reqBO)) {
-                log.error("save order unfrozen failed, frozen={}, reqBO={}", accountFrozen, reqBO);
-                throw new SysErr();
+
+            try {
+                if (!saveOrderUnfrozenDetail(accountFrozen, reqBO)) {
+                    log.error("save order unfrozen failed, frozen={}, reqBO={}", accountFrozen, reqBO);
+                    throw new SysErr();
+                }
+            } catch (DuplicateKeyException ex) {
+                throw new BizErr(ORDER_DUPLICATE_UNFROZEN);
             }
 
             if (!saveAccountUnfrozenLog(account, reqBO)) {
-                log.error("Save unfrozen log failed, account={} by order={}", account, reqBO);
+                log.error("save unfrozen log failed, account={} by order={}", account, reqBO);
                 throw new SysErr();
             }
 
@@ -186,17 +196,21 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
             log.info("deposit=>account={}", account);
 
             if (!updateAccountDeposit(reqBO)) {
-                log.warn("Update account deposit failed, account={}, reqBO={}", account, reqBO);
+                log.warn("update account deposit failed, account={}, reqBO={}", account, reqBO);
                 throw new SysErr();
             }
 
-            if (!saveOrderDeposit(account, reqBO)) {
-                log.error("Save deposit order failed, account={} by order={}", account, reqBO);
-                throw new SysErr();
+            try {
+                if (!saveOrderDeposit(account, reqBO)) {
+                    log.error("save deposit order failed, account={} by order={}", account, reqBO);
+                    throw new SysErr();
+                }
+            }  catch (DuplicateKeyException ex) {
+                throw new BizErr(ORDER_DUPLICATE_DEPOSIT);
             }
 
             if (!saveAccountDepositLog(account, reqBO)) {
-                log.error("Save deposit log failed, account={} by order={}", account, reqBO);
+                log.error("save deposit log failed, account={} by order={}", account, reqBO);
                 throw new SysErr();
             }
 
@@ -223,17 +237,21 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
             log.info("withdraw=>account={}", account);
 
             if (!updateAccountWithdraw(reqBO)) {
-                log.warn("Update account Withdraw failed, account={}, reqBO={}", account, reqBO);
+                log.warn("update account Withdraw failed, account={}, reqBO={}", account, reqBO);
                 throw new BizErr(BALANCE_NOT_ENOUGH);
             }
 
-            if (!saveOrderWithdraw(account, reqBO)) {
-                log.error("Save Withdraw order failed, account={} by order={}", account, reqBO);
-                throw new SysErr();
+            try {
+                if (!saveOrderWithdraw(account, reqBO)) {
+                    log.error("save Withdraw order failed, account={} by order={}", account, reqBO);
+                    throw new SysErr();
+                }
+            }  catch (DuplicateKeyException ex) {
+                throw new BizErr(ORDER_DUPLICATE_WITHDRAW);
             }
 
             if (!saveAccountWithdrawLog(account, reqBO)) {
-                log.error("Save Withdraw log failed, account={} by order={}", account, reqBO);
+                log.error("save Withdraw log failed, account={} by order={}", account, reqBO);
                 throw new SysErr();
             }
 

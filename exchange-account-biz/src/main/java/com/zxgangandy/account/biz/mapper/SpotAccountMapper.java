@@ -1,7 +1,7 @@
 package com.zxgangandy.account.biz.mapper;
 
-import com.zxgangandy.account.biz.entity.SpotAccount;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.zxgangandy.account.biz.entity.SpotAccount;
 import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;

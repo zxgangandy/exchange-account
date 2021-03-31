@@ -4,6 +4,7 @@ import com.zxgangandy.account.assembly.AccountApplication;
 import com.zxgangandy.account.biz.bo.FrozenReqBO;
 import com.zxgangandy.account.biz.service.ISpotAccountService;
 import io.jingwei.base.utils.exception.BizErr;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +23,7 @@ import static org.hamcrest.Matchers.is;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = AccountApplication.class)
+@Slf4j
 public class SpotAccountServiceTest {
 
     @Autowired
@@ -29,8 +31,6 @@ public class SpotAccountServiceTest {
 
     @Test
     public void TestFrozenUserNotFound(){
-        //LearnResource learnResource=learnService.selectByKey(1001L);
-
         try {
             spotAccountService.frozen(new FrozenReqBO().setAmount(new BigDecimal(100))
                     .setBizType("frozen1")
@@ -44,17 +44,46 @@ public class SpotAccountServiceTest {
 
     @Test
     public void TestFrozenAmountInvalid(){
-        //LearnResource learnResource=learnService.selectByKey(1001L);
+        try {
+            spotAccountService.frozen(new FrozenReqBO()
+                    .setAmount(new BigDecimal(2000000))
+                    .setBizType("frozen1")
+                    .setCurrency("USDT")
+                    .setOrderId(3L)
+                    .setUserId(456L));
 
-        //try {
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12501"));
+        }
+    }
+
+    @Test
+    public void TestFrozenAmountDup(){
+        //LearnResource learnResource=learnService.selectByKey(1001L);
+        spotAccountService.frozen(new FrozenReqBO()
+                .setAmount(new BigDecimal(20000))
+                .setBizType("frozen1")
+                .setCurrency("USDT")
+                .setOrderId(4L)
+                .setUserId(456L));
+
+        try {
             spotAccountService.frozen(new FrozenReqBO()
                     .setAmount(new BigDecimal(20000))
                     .setBizType("frozen1")
                     .setCurrency("USDT")
-                    .setOrderId(1L)
+                    .setOrderId(4L)
                     .setUserId(456L));
-//        } catch (BizErr e) {
-//            //Assert.assertThat(e.getCode().getCode(), is("12500"));
-//        }
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12502"));
+        }
     }
+
+
+
+
+
+
 }

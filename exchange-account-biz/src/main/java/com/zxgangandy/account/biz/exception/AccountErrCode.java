@@ -6,8 +6,12 @@ import io.jingwei.base.utils.exception.IBizErrCode;
 public enum AccountErrCode implements IBizErrCode {
     ACCOUNT_NOT_FOUND("12500", "account-not-found"),
     BALANCE_NOT_ENOUGH("12501", "balance-not-enough"),
-    FROZEN_RECORD_NOT_FOUND("12502", "frozen-record-not-found"),
-    UNFROZEN_AMOUNT_INVALID("12503", "unfrozen-amount-invalid")
+    ORDER_DUPLICATE_FROZEN("12502", "order-duplicate-frozen"),
+    FROZEN_RECORD_NOT_FOUND("12503", "frozen-record-not-found"),
+    UNFROZEN_AMOUNT_INVALID("12504", "unfrozen-amount-invalid"),
+    ORDER_DUPLICATE_UNFROZEN("12505", "order-duplicate-unfrozen"),
+    ORDER_DUPLICATE_DEPOSIT("12506", "order-duplicate-deposit"),
+    ORDER_DUPLICATE_WITHDRAW("12507", "order-duplicate-withdraw"),
     ;
 
     /**

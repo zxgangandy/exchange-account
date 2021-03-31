@@ -20,7 +20,7 @@ spring:
 
 #mybaits-plus配置，修改主键类型，mapper.xml、type 别名等
 mybatis-plus:
-  mapper-locations: classpath:/mapper/*Mapper.xml
+  mapper-locations: classpath*:/mapper/*Mapper.xml
   typeAliasesPackage: com.zxgangandy.account.biz.entity
   global-config:
     #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
@@ -37,12 +37,4 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     cache-enabled: true
 
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    serviceUrl:
-      defaultZone: http://eureka:password@localhost:8761/eureka
-    enabled: true
-    register-with-eureka: true
 

@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Accessors(chain = true)
 public class UnfrozenReqBO {
     /**
-     * 订单号
+     * 原冻结订单号
      */
     private Long orderId;
 
@@ -29,7 +29,7 @@ public class UnfrozenReqBO {
     private String currency;
 
     /**
-     * 业务ID
+     * 解冻业务ID
      */
     private Long bizId;
 

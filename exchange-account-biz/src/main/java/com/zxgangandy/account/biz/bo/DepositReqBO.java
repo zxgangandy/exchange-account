@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Accessors(chain = true)
 public class DepositReqBO {
     /**
-     * 订单号
+     * 入金订单号
      */
     private Long orderId;
     /**
