@@ -1,4 +1,4 @@
-package com.zxgangandy.account.biz.constant.enums;
+package com.zxgangandy.account.biz.constant;
 
 import lombok.Getter;
 

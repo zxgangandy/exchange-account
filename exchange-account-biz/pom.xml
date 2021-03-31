@@ -8,17 +8,11 @@
         <version>1.0.7</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
 
     <artifactId>exchange-account-biz</artifactId>
 
     <dependencies>
-
-        <dependency>
-            <groupId>io.github.zxgangandy</groupId>
-            <artifactId>exchange-account-base</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>

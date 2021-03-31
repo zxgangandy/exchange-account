@@ -4,7 +4,7 @@ import com.zxgangandy.account.biz.bo.DepositReqBO;
 import com.zxgangandy.account.biz.bo.FrozenReqBO;
 import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
 import com.zxgangandy.account.biz.bo.WithdrawReqBO;
-import com.zxgangandy.account.biz.constant.enums.TradeType;
+import com.zxgangandy.account.biz.constant.TradeType;
 import com.zxgangandy.account.biz.entity.*;
 
 public class AccountSupport {
