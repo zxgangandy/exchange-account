@@ -25,24 +25,4 @@
         and frozen >= #{amount}
     </update>
 
-    <update id="depositByUser">
-        update spot_account set balance = balance + #{amount}
-        where user_id = #{userId} and currency=#{currency}
-    </update>
-
-    <update id="depositByAccount">
-        update spot_account set balance = balance + #{amount}
-        where account_id = #{accountId}
-    </update>
-
-    <update id="withdrawByUser">
-        update spot_account set balance = balance - #{amount}
-        where user_id = #{userId} and currency=#{currency}
-    </update>
-
-    <update id="withdrawByAccount">
-        update spot_account set balance = balance - #{amount}
-        where account_id = #{accountId}
-    </update>
-
 </mapper>
