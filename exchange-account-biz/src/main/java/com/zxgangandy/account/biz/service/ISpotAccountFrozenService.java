@@ -19,8 +19,8 @@ public interface ISpotAccountFrozenService extends IService<SpotAccountFrozen> {
     Optional<SpotAccountFrozen> getUserOrderFrozen(long userId, long orderId, String bizType);
 
     /**
-     * 根据用户uid、orderId、bizType更新订单冻结金额
+     * 根据用户orderId、bizType更新订单冻结金额
      */
-    boolean updateOrderFrozen(long userId, long orderId, String bizType, BigDecimal amount);
+    boolean updateOrderFrozen(long orderId, String bizType, BigDecimal amount);
 
 }

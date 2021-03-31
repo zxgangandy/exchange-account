@@ -18,8 +18,7 @@ public interface SpotAccountFrozenMapper extends BaseMapper<SpotAccountFrozen> {
     /**
      * 根据用户uid、orderId、bizType更新订单冻结金额
      */
-    int updateOrderFrozen(@Param("userId") long userId,
-                          @Param("orderId") long orderId,
+    int updateOrderFrozen(@Param("orderId") long orderId,
                           @Param("bizType") String bizType,
                           @Param("amount") BigDecimal amount);
 }

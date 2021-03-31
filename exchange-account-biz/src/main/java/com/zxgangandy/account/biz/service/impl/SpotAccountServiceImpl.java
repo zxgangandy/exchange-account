@@ -125,13 +125,14 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
     /**
      * @Description: 解冻用户资产
+     * 解冻的业务类型必须和冻结的业务类型（bizType）一致或者说相同
      * @date 3/30/21
      * @Param reqBO:
      * @return: void
      */
     @Override
     public void unfrozen(UnfrozenReqBO reqBO) {
-        log.info("unfrozen=>reqBO={}", reqBO);
+        log.info("[[begin unfrozen]]: reqBO={}", reqBO);
 
         txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
@@ -146,11 +147,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
                 throw new BizErr(UNFROZEN_AMOUNT_INVALID);
             }
 
-            if (!updateOrderUnfrozen(reqBO)) {
-                log.warn("update order unfrozen failed, account={}, reqBO={}", account, reqBO);
-                throw new BizErr(UNFROZEN_AMOUNT_INVALID);
-            }
-
             Optional<SpotAccountFrozen> accountFrozenOpt = getUserOrderFrozen(reqBO);
             if (!accountFrozenOpt.isPresent()) {
                 log.warn("frozen record not found, account={}, reqBO={}", account, reqBO);
@@ -158,6 +154,10 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
             }
 
             SpotAccountFrozen accountFrozen = accountFrozenOpt.get();
+            if (!updateOrderUnfrozen(reqBO)) {
+                log.warn("update order unfrozen failed, account={}, reqBO={}", account, reqBO);
+                throw new BizErr(UNFROZEN_AMOUNT_INVALID);
+            }
 
             try {
                 if (!saveOrderUnfrozenDetail(accountFrozen, reqBO)) {
@@ -173,7 +173,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
                 throw new SysErr();
             }
 
-            log.info("unfrozen account={} by order={} success", account, reqBO);
+            log.info("[[end unfrozen]]: account={} by order={} success", account, reqBO);
         });
     }
 
@@ -185,7 +185,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
      */
     @Override
     public void deposit(DepositReqBO reqBO) {
-        log.info("deposit=>reqBO={}", reqBO);
+        log.info("[[begin deposit]]: reqBO={}", reqBO);
 
         txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
@@ -214,7 +214,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
                 throw new SysErr();
             }
 
-            log.info("deposit account={} by order={} success", account, reqBO);
+            log.info("[[end deposit]]: account={} by order={} success", account, reqBO);
         });
     }
 
@@ -226,7 +226,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
      */
     @Override
     public void withdraw(WithdrawReqBO reqBO) {
-        log.info("withdraw=>reqBO={}", reqBO);
+        log.info("[[begin withdraw]]: reqBO={}", reqBO);
 
         txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
@@ -255,7 +255,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
                 throw new SysErr();
             }
 
-            log.info("Withdraw account={} by order={} success", account, reqBO);
+            log.info("[[end withdraw]]: account={} by order={} success", account, reqBO);
         });
     }
 
@@ -302,7 +302,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
      */
     private boolean updateOrderUnfrozen(UnfrozenReqBO reqBO) {
         return spotAccountFrozenService.updateOrderFrozen(
-                reqBO.getUserId(),
                 reqBO.getOrderId(),
                 reqBO.getBizType(),
                 reqBO.getUnfrozenAmount());

@@ -35,7 +35,7 @@ public class SpotAccountFrozenServiceImpl extends ServiceImpl<SpotAccountFrozenM
     }
 
     @Override
-    public boolean updateOrderFrozen(long userId, long orderId, String bizType, BigDecimal amount) {
-        return SqlHelper.retBool(spotAccountFrozenMapper.updateOrderFrozen(userId, orderId, bizType, amount));
+    public boolean updateOrderFrozen(long orderId, String bizType, BigDecimal amount) {
+        return SqlHelper.retBool(spotAccountFrozenMapper.updateOrderFrozen(orderId, bizType, amount));
     }
 }

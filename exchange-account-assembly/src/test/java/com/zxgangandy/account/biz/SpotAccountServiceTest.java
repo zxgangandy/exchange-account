@@ -2,6 +2,7 @@ package com.zxgangandy.account.biz;
 
 import com.zxgangandy.account.assembly.AccountApplication;
 import com.zxgangandy.account.biz.bo.FrozenReqBO;
+import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
 import com.zxgangandy.account.biz.service.ISpotAccountService;
 import io.jingwei.base.utils.exception.BizErr;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class SpotAccountServiceTest {
                     .setOrderId(1L)
                     .setUserId(1L));
         } catch (BizErr e) {
+            log.error("e={}", e);
             Assert.assertThat(e.getCode().getCode(), is("12500"));
         }
     }
@@ -60,7 +62,6 @@ public class SpotAccountServiceTest {
 
     @Test
     public void TestFrozenAmountDup(){
-        //LearnResource learnResource=learnService.selectByKey(1001L);
         spotAccountService.frozen(new FrozenReqBO()
                 .setAmount(new BigDecimal(20000))
                 .setBizType("frozen1")
@@ -81,7 +82,79 @@ public class SpotAccountServiceTest {
         }
     }
 
+    @Test
+    public void TestUnFrozenUserNotFound(){
+        try {
+            spotAccountService.unfrozen(new UnfrozenReqBO()
+                    .setBizId(1L)
+                    .setUnfrozenAmount(new BigDecimal(100))
+                    .setBizType("unfrozen1")
+                    .setCurrency("USDT")
+                    .setOrderId(1L)
+                    .setUserId(1L));
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12500"));
+        }
+    }
 
+    @Test
+    public void TestUnFrozenAmountOk(){
+        try {
+            spotAccountService.unfrozen(new UnfrozenReqBO()
+                    .setUnfrozenAmount(new BigDecimal(1))
+                    .setBizId(2L)
+                    .setBizType("frozen1")
+                    .setCurrency("USDT")
+                    .setOrderId(4L)
+                    .setUserId(456L));
+
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12504"));
+        }
+    }
+
+    @Test
+    public void TestUnFrozenAmountInvalid(){
+        try {
+            spotAccountService.unfrozen(new UnfrozenReqBO()
+                    .setUnfrozenAmount(new BigDecimal(2000000))
+                    .setBizType("frozen1")
+                    .setBizId(2L)
+                    .setCurrency("USDT")
+                    .setOrderId(4L)
+                    .setUserId(456L));
+
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12504"));
+        }
+    }
+
+    @Test
+    public void TestUnFrozenAmountDup(){
+        spotAccountService.unfrozen(new UnfrozenReqBO()
+                .setUnfrozenAmount(new BigDecimal(20000))
+                .setBizType("frozen1")
+                .setBizId(3L)
+                .setCurrency("USDT")
+                .setOrderId(4L)
+                .setUserId(456L));
+
+        try {
+            spotAccountService.unfrozen(new UnfrozenReqBO()
+                    .setUnfrozenAmount(new BigDecimal(20000))
+                    .setBizType("frozen1")
+                    .setBizId(3L)
+                    .setCurrency("USDT")
+                    .setOrderId(4L)
+                    .setUserId(456L));
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12502"));
+        }
+    }
 
 
 

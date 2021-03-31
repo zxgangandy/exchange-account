@@ -62,7 +62,7 @@ public class AccountSupport {
                 .setOrderId(reqBO.getOrderId())
                 .setAccountId(accountFrozen.getAccountId())
                 .setOriginFrozen(accountFrozen.getOriginFrozen())
-                .setLeftFrozen(accountFrozen.getLeftFrozen());
+                .setLeftFrozen(accountFrozen.getLeftFrozen().subtract(reqBO.getUnfrozenAmount()));
 
     }
 
