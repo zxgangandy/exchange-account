@@ -278,7 +278,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
      */
     private boolean updateAccountUnfrozen(UnfrozenReqBO reqBO) {
         return SqlHelper.retBool(spotAccountMapper.unfrozenByUser(reqBO.getUserId(),
-                reqBO.getCurrency(), reqBO.getUnfrozenAmount()));
+                reqBO.getCurrency(), reqBO.getAmount()));
     }
 
     /**
@@ -304,7 +304,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
         return spotAccountFrozenService.updateOrderFrozen(
                 reqBO.getOrderId(),
                 reqBO.getBizType(),
-                reqBO.getUnfrozenAmount());
+                reqBO.getAmount());
     }
 
     /**

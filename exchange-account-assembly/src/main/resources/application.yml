@@ -1,6 +1,7 @@
 server:
   port: 8500
 
+
 spring:
   datasource:
     #   数据源基本配置
@@ -37,4 +38,6 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     cache-enabled: true
 
-
+logging:
+  level:
+    root: debug

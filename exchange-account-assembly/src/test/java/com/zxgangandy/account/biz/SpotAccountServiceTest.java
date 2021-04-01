@@ -87,7 +87,7 @@ public class SpotAccountServiceTest {
         try {
             spotAccountService.unfrozen(new UnfrozenReqBO()
                     .setBizId(1L)
-                    .setUnfrozenAmount(new BigDecimal(100))
+                    .setAmount(new BigDecimal(100))
                     .setBizType("unfrozen1")
                     .setCurrency("USDT")
                     .setOrderId(1L)
@@ -102,7 +102,7 @@ public class SpotAccountServiceTest {
     public void TestUnFrozenAmountOk(){
         try {
             spotAccountService.unfrozen(new UnfrozenReqBO()
-                    .setUnfrozenAmount(new BigDecimal(1))
+                    .setAmount(new BigDecimal(1))
                     .setBizId(2L)
                     .setBizType("frozen1")
                     .setCurrency("USDT")
@@ -119,7 +119,7 @@ public class SpotAccountServiceTest {
     public void TestUnFrozenAmountInvalid(){
         try {
             spotAccountService.unfrozen(new UnfrozenReqBO()
-                    .setUnfrozenAmount(new BigDecimal(2000000))
+                    .setAmount(new BigDecimal(2000000))
                     .setBizType("frozen1")
                     .setBizId(2L)
                     .setCurrency("USDT")
@@ -135,7 +135,7 @@ public class SpotAccountServiceTest {
     @Test
     public void TestUnFrozenAmountDup(){
         spotAccountService.unfrozen(new UnfrozenReqBO()
-                .setUnfrozenAmount(new BigDecimal(20000))
+                .setAmount(new BigDecimal(20000))
                 .setBizType("frozen1")
                 .setBizId(3L)
                 .setCurrency("USDT")
@@ -144,7 +144,7 @@ public class SpotAccountServiceTest {
 
         try {
             spotAccountService.unfrozen(new UnfrozenReqBO()
-                    .setUnfrozenAmount(new BigDecimal(20000))
+                    .setAmount(new BigDecimal(20000))
                     .setBizType("frozen1")
                     .setBizId(3L)
                     .setCurrency("USDT")

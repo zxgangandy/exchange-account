@@ -43,11 +43,11 @@ public class AccountSupport {
                 .setFromUserId(reqBO.getUserId())
                 .setToUserId(reqBO.getUserId())
                 .setCurrency(reqBO.getCurrency())
-                .setAmount(reqBO.getUnfrozenAmount())
+                .setAmount(reqBO.getAmount())
                 .setBeforeBalance(account.getBalance())
-                .setBalance(account.getBalance().add(reqBO.getUnfrozenAmount()))
+                .setBalance(account.getBalance().add(reqBO.getAmount()))
                 .setBeforeFrozen(account.getFrozen())
-                .setFrozen(account.getFrozen().subtract(reqBO.getUnfrozenAmount()))
+                .setFrozen(account.getFrozen().subtract(reqBO.getAmount()))
                 .setBizType(reqBO.getBizType())
                 .setOrderId(reqBO.getOrderId());
     }
@@ -56,13 +56,13 @@ public class AccountSupport {
         return new SpotAccountUnfrozen()
                 .setBizId(reqBO.getBizId())
                 .setBizType(reqBO.getBizType())
-                .setUnfrozen(reqBO.getUnfrozenAmount())
+                .setUnfrozen(reqBO.getAmount())
                 .setUserId(reqBO.getUserId())
                 .setCurrency(reqBO.getCurrency())
                 .setOrderId(reqBO.getOrderId())
                 .setAccountId(accountFrozen.getAccountId())
                 .setOriginFrozen(accountFrozen.getOriginFrozen())
-                .setLeftFrozen(accountFrozen.getLeftFrozen().subtract(reqBO.getUnfrozenAmount()));
+                .setLeftFrozen(accountFrozen.getLeftFrozen().subtract(reqBO.getAmount()));
 
     }
 

@@ -21,7 +21,7 @@ public class UnfrozenReqBO {
     /**
      * 解冻金额
      */
-    private BigDecimal unfrozenAmount;
+    private BigDecimal amount;
 
     /**
      * 币种
