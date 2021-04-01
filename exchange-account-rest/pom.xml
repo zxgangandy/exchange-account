@@ -101,6 +101,7 @@
         <dependency>
             <groupId>io.github.zxgangandy</groupId>
             <artifactId>exchange-account-model</artifactId>
+            <version>1.1.0</version>
         </dependency>
     </dependencies>
 
