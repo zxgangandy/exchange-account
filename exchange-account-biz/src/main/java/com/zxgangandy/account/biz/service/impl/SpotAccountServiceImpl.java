@@ -9,6 +9,7 @@ import com.zxgangandy.account.biz.bo.WithdrawReqBO;
 import com.zxgangandy.account.biz.entity.*;
 import com.zxgangandy.account.biz.mapper.SpotAccountMapper;
 import com.zxgangandy.account.biz.service.*;
+import io.jingwei.base.idgen.UidGenerator;
 import io.jingwei.base.utils.exception.BizErr;
 import io.jingwei.base.utils.exception.SysErr;
 import io.jingwei.base.utils.tx.TxTemplateService;
@@ -16,10 +17,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.zxgangandy.account.biz.exception.AccountErrCode.*;
 import static com.zxgangandy.account.biz.support.AccountSupport.*;
@@ -43,6 +46,34 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     private final ISpotAccountFrozenService     spotAccountFrozenService;
     private final ISpotAccountUnfrozenService   spotAccountUnfrozenService;
     private final ISpotAccountTradeService      spotAccountTradeService;
+    private final UidGenerator                  defaultUidGenerator;
+
+    @Override
+    public boolean createAccount(long userId, String currency) {
+
+        return save(new SpotAccount()
+                .setAccountId(defaultUidGenerator.getUID())
+                .setBalance(BigDecimal.ZERO)
+                .setFrozen(BigDecimal.ZERO)
+                .setUserId(userId)
+                .setCurrency(currency));
+    }
+
+    @Override
+    public void createAccount(List<Long> uids, List<String> currencies) {
+        Assert.isTrue(uids.size() <= 20,
+                "user id list size must not be bigger than 20");
+
+        txTemplateService.doInTransaction(() ->
+                uids.stream().forEach(uid -> {
+                    try {
+                        saveBatch(buildAccounts(uid, currencies));
+                    } catch (DuplicateKeyException ex) {
+                        throw new BizErr(USER_ACCOUNT_DUPLICATE);
+                    }
+                })
+        );
+    }
 
     @Override
     public Optional<SpotAccount> getAccount(long userId, String currency) {
@@ -257,6 +288,27 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
             log.info("[[end withdraw]]: account={} by order={} success", account, reqBO);
         });
+    }
+
+    /**
+     * @Description: 根据单个用户id和币种来构建账号初始化列表
+     * @date 4/5/21
+     * @Param uid:
+     * @Param currencies:
+     * @return: java.util.List<com.zxgangandy.account.biz.entity.SpotAccount>
+     */
+    private List<SpotAccount> buildAccounts(Long uid, List<String> currencies) {
+        List<SpotAccount> accounts = currencies.stream()
+                .map(currency -> new SpotAccount()
+                        .setAccountId(defaultUidGenerator.getUID())
+                        .setBalance(BigDecimal.ZERO)
+                        .setFrozen(BigDecimal.ZERO)
+                        .setUserId(uid)
+                        .setCurrency(currency)
+                )
+                .collect(Collectors.toList());
+
+        return accounts;
     }
 
     /**

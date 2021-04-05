@@ -6,6 +6,7 @@ import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
 import com.zxgangandy.account.biz.service.ISpotAccountService;
 import io.jingwei.base.utils.exception.BizErr;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +30,18 @@ public class SpotAccountServiceTest {
 
     @Autowired
     private ISpotAccountService spotAccountService;
+
+    @Test
+    public void TestCreateOneAccount() {
+        spotAccountService.createAccount(1L, "IDA");
+        Assert.assertNotNull(spotAccountService.getAccount(1L, "IDA").get());
+    }
+
+    @Test
+    public void TestCreateOneAccounts() {
+        spotAccountService.createAccount(Lists.newArrayList(1L), Lists.newArrayList("IDA"));
+        Assert.assertNotNull(spotAccountService.getAccount(1L, "IDA").get());
+    }
 
     @Test
     public void TestFrozenUserNotFound(){

@@ -21,6 +21,10 @@ import java.util.Optional;
  */
 public interface ISpotAccountService extends IService<SpotAccount> {
 
+    boolean createAccount(long userId, String currency);
+
+    void createAccount(List<Long> uids, List<String> currencies);
+
     /**
      *  根据用户id和币种获取用户账户信息
      */
