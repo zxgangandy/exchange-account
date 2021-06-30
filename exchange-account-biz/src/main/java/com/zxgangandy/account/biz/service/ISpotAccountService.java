@@ -1,9 +1,6 @@
 package com.zxgangandy.account.biz.service;
 
-import com.zxgangandy.account.biz.bo.DepositReqBO;
-import com.zxgangandy.account.biz.bo.FrozenReqBO;
-import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
-import com.zxgangandy.account.biz.bo.WithdrawReqBO;
+import com.zxgangandy.account.biz.bo.*;
 import com.zxgangandy.account.biz.entity.SpotAccount;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -21,9 +18,32 @@ import java.util.Optional;
  */
 public interface ISpotAccountService extends IService<SpotAccount> {
 
+    /**
+     * @Description: 根据用户和币种创建账务账户
+     * @date 4/16/21
+     * @Param userId: 用户id
+     * @Param currency: 币种
+     * @return: boolean
+     */
     boolean createAccount(long userId, String currency);
 
+    /**
+     * @Description: 根据用户列表和币种列表创建账务账户
+     * @date 4/16/21
+     * @Param uids: 用户列表
+     * @Param currencies: 币种列表
+     * @return: void
+     */
     void createAccount(List<Long> uids, List<String> currencies);
+
+    /**
+     * @Description: 根据用户列表和币种获取已经存在的用户列表
+     * @date 4/16/21
+     * @Param uids: 用户列表
+     * @Param currency:
+     * @return: java.util.List<java.lang.Long> 已经存在的用户列表
+     */
+    List<Long> getExistAccounts(List<Long> uids, String currency);
 
     /**
      *  根据用户id和币种获取用户账户信息
@@ -72,6 +92,28 @@ public interface ISpotAccountService extends IService<SpotAccount> {
      */
     void withdraw(WithdrawReqBO reqBO);
 
-    void updateOne();
+    /**
+     * @Description:  转账
+     * @date 4/21/21
+     * @Param req:
+     * @return: void
+     */
+    void transfer(TransferReqBO req);
+
+    /**
+     * @Description: 解冻并出金
+     * @date 4/21/21
+     * @Param req:
+     * @return: void
+     */
+    void unfrozenWithdraw(UnfrozenWithdrawReqBO req);
+
+    /**
+     * @Description: 解冻并转账
+     * @date 4/21/21
+     * @Param req:
+     * @return: void
+     */
+    void unfrozenTransfer(UnfrozenTransferReqBO req);
 
 }

@@ -2,10 +2,8 @@ package com.zxgangandy.account.biz.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
-import com.zxgangandy.account.biz.bo.DepositReqBO;
-import com.zxgangandy.account.biz.bo.FrozenReqBO;
-import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
-import com.zxgangandy.account.biz.bo.WithdrawReqBO;
+import com.google.common.collect.Lists;
+import com.zxgangandy.account.biz.bo.*;
 import com.zxgangandy.account.biz.entity.*;
 import com.zxgangandy.account.biz.mapper.SpotAccountMapper;
 import com.zxgangandy.account.biz.service.*;
@@ -15,11 +13,13 @@ import io.jingwei.base.utils.exception.SysErr;
 import io.jingwei.base.utils.tx.TxTemplateService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,7 +39,8 @@ import static com.zxgangandy.account.biz.support.AccountSupport.*;
 @Service
 @AllArgsConstructor
 @Slf4j
-            public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotAccount> implements ISpotAccountService {
+@SuppressWarnings("Duplicates")
+public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotAccount> implements ISpotAccountService {
     private final TxTemplateService             txTemplateService;
     private final ISpotAccountLogService        spotAccountLogService;
     private final SpotAccountMapper             spotAccountMapper;
@@ -73,6 +74,20 @@ import static com.zxgangandy.account.biz.support.AccountSupport.*;
                     }
                 })
         );
+    }
+
+    @Override
+    public List<Long> getExistAccounts(List<Long> uids, String currency) {
+        List<SpotAccount> accounts = lambdaQuery()
+                .in(SpotAccount::getUserId, uids)
+                .eq(SpotAccount::getCurrency, currency).list();
+        if (CollectionUtils.isNotEmpty(accounts)) {
+            return accounts.stream()
+                    .map(SpotAccount::getUserId)
+                    .collect(Collectors.toList());
+        }
+
+        return Lists.newArrayList();
     }
 
     @Override
@@ -113,7 +128,8 @@ import static com.zxgangandy.account.biz.support.AccountSupport.*;
 
     /**
      * @Description: 冻结用户资金
-     * （不做查询的原因：1. App或者前端可以做余额判断； 2.大部分情况是余额足够下的单）
+     * （不做查询的原因：1. App或者前端可以做余额判断； 2.大部分情况是余额足够下的单； 3.更新操作会失败）
+     *  另外需要注意： 一个订单号只能被冻结一次
      *
      * @date 1/29/21
      * @Param reqBO:
@@ -149,14 +165,14 @@ import static com.zxgangandy.account.biz.support.AccountSupport.*;
                 log.error("save frozen log failed, account={} by order={}", account, reqBO);
                 throw new SysErr();
             }
-
-            log.info("[[end frozen]]: account={} by order={} success", account, reqBO);
         });
+
+        log.info("[[end frozen]]:  order={} success",  reqBO);
     }
 
     /**
      * @Description: 解冻用户资产
-     * 解冻的业务类型必须和冻结的业务类型（bizType）一致或者说相同
+     * 解冻的业务类型必须和冻结的业务类型（bizType）一致或相同
      * @date 3/30/21
      * @Param reqBO:
      * @return: void
@@ -172,6 +188,10 @@ import static com.zxgangandy.account.biz.support.AccountSupport.*;
             }
 
             log.info("unfrozen=>account={}", account);
+
+            if (account.getFrozen().compareTo(reqBO.getAmount()) == -1) {
+                throw new BizErr(UNFROZEN_AMOUNT_INVALID);
+            }
 
             if (!updateAccountUnfrozen(reqBO)) {
                 log.warn("update account unfrozen failed, account={}, reqBO={}", account, reqBO);
@@ -291,11 +311,93 @@ import static com.zxgangandy.account.biz.support.AccountSupport.*;
     }
 
     @Override
-    public void updateOne() {
-        lambdaUpdate()
-                .eq(SpotAccount::getUserId, 123)
-                .setSql("balance=balance+"+1)
-                .update();
+    public void transfer(TransferReqBO req) {
+        WithdrawReqBO withdraw = new WithdrawReqBO()
+                .setUserId(req.getFromUserId())
+                .setOrderId(req.getOrderId())
+                .setBizType(req.getBizType())
+                .setCurrency(req.getCurrency())
+                .setAmount(req.getAmount());
+
+        DepositReqBO deposit = new DepositReqBO()
+                .setUserId(req.getToUserId())
+                .setOrderId(req.getOrderId())
+                .setBizType(req.getBizType())
+                .setCurrency(req.getCurrency())
+                .setAmount(req.getAmount());
+
+        log.info("[[begin transfer]]: withdraw={}, deposit={}", withdraw, deposit);
+
+        transfer(withdraw, deposit);
+    }
+
+    private void transfer(WithdrawReqBO withdraw, DepositReqBO deposit) {
+        log.info("[[begin transfer]]: withdraw={}, deposit={}", withdraw, deposit);
+
+        txTemplateService.doInTransaction(() -> {
+            sortAndLockTransferAccounts(withdraw,deposit);
+            withdraw(withdraw);
+            deposit(deposit);
+        });
+    }
+
+    @Override
+    public void unfrozenWithdraw(UnfrozenWithdrawReqBO req) {
+        UnfrozenReqBO unfrozenReq = new UnfrozenReqBO()
+                .setUserId(req.getUserId())
+                .setOrderId(req.getOrderId())
+                .setBizType(req.getBizType())
+                .setCurrency(req.getCurrency())
+                .setBizId(req.getBizId())
+                .setAmount(req.getAmount());
+
+        WithdrawReqBO withdraw = new WithdrawReqBO()
+                .setUserId(req.getUserId())
+                .setOrderId(req.getOrderId())
+                .setBizType(req.getBizType())
+                .setCurrency(req.getCurrency())
+                .setAmount(req.getAmount());
+
+        unfrozenWithdraw(unfrozenReq, withdraw);
+    }
+
+    @Override
+    public void unfrozenTransfer(UnfrozenTransferReqBO req) {
+        UnfrozenReqBO unfrozenReq = new UnfrozenReqBO()
+                .setUserId(req.getFromUserId())
+                .setOrderId(req.getOrderId())
+                .setBizType(req.getBizType())
+                .setCurrency(req.getCurrency())
+                .setBizId(req.getBizId())
+                .setAmount(req.getAmount());
+
+        WithdrawReqBO withdraw = new WithdrawReqBO()
+                .setUserId(req.getFromUserId())
+                .setOrderId(req.getOrderId())
+                .setBizType(req.getBizType())
+                .setCurrency(req.getCurrency())
+                .setAmount(req.getAmount());
+
+        DepositReqBO deposit = new DepositReqBO()
+                .setUserId(req.getToUserId())
+                .setOrderId(req.getOrderId())
+                .setBizType(req.getBizType())
+                .setCurrency(req.getCurrency())
+                .setAmount(req.getAmount());
+
+        txTemplateService.doInTransaction(() -> {
+            sortAndLockTransferAccounts(withdraw,deposit);
+            unfrozenWithdraw(unfrozenReq, withdraw);
+            deposit(deposit);
+        });
+    }
+
+
+    private void unfrozenWithdraw(UnfrozenReqBO unfrozenReq, WithdrawReqBO withdraw) {
+        txTemplateService.doInTransaction(() -> {
+            unfrozen(unfrozenReq);
+            withdraw(withdraw);
+        });
     }
 
     /**
@@ -476,6 +578,23 @@ import static com.zxgangandy.account.biz.support.AccountSupport.*;
         SpotAccountLog accountLog = createWithdrawLog(account, reqBO);
 
         return spotAccountLogService.save(accountLog);
+    }
+
+
+    private void sortAndLockTransferAccounts(WithdrawReqBO withdraw, DepositReqBO deposit) {
+        List<SpotAccount> accountInfos = Lists.newArrayList();
+        SpotAccount withdrawAccount = getAccount(withdraw.getUserId(), withdraw.getCurrency())
+                .orElseThrow(()->new BizErr(ACCOUNT_NOT_FOUND));
+        accountInfos.add(withdrawAccount);
+        SpotAccount depositAccount = getAccount(deposit.getUserId(), deposit.getCurrency())
+                .orElseThrow(()->new BizErr(ACCOUNT_NOT_FOUND));
+        accountInfos.add(depositAccount);
+
+        accountInfos.stream()
+                .sorted(Comparator.comparing(SpotAccount::getId))
+                .map((accountInfo) ->
+                        getLockedAccount(accountInfo.getUserId(), accountInfo.getCurrency())
+                );
     }
 
 }

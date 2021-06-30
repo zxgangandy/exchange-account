@@ -18,11 +18,7 @@ import java.math.BigDecimal;
 
 import static org.hamcrest.Matchers.is;
 
-/**
- * @author yangyi
- * @deta 2018/2/26
- * @description
- */
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = AccountApplication.class)
 @Slf4j
@@ -33,9 +29,8 @@ public class SpotAccountServiceTest {
 
     @Test
     public void TestCreateOneAccount() {
-        spotAccountService.updateOne();
-//        spotAccountService.createAccount(1L, "IDA");
-//        Assert.assertNotNull(spotAccountService.getAccount(1L, "IDA").get());
+        spotAccountService.createAccount(1L, "IDA");
+        Assert.assertNotNull(spotAccountService.getAccount(1L, "IDA").get());
     }
 
     @Test
