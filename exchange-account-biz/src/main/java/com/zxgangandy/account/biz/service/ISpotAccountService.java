@@ -106,7 +106,7 @@ public interface ISpotAccountService extends IService<SpotAccount> {
      * @Param req:
      * @return: void
      */
-    void KunfrozenWithdraw(UnfrozenWithdrawReqBO req);
+    void unfrozenWithdraw(UnfrozenWithdrawReqBO req);
 
     /**
      * @Description: 解冻并转账
