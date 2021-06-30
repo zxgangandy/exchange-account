@@ -72,4 +72,6 @@ public interface ISpotAccountService extends IService<SpotAccount> {
      */
     void withdraw(WithdrawReqBO reqBO);
 
+    void updateOne();
+
 }

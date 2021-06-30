@@ -4,7 +4,7 @@
 
     <update id="updateOrderFrozen">
         update spot_account_frozen set left_frozen = left_frozen - #{amount}
-        where order_id = #{orderId} and biz_type = #{bizType}
+        where user_id = #{userId} and order_id = #{orderId} and biz_type = #{bizType}
         and left_frozen >= #{amount}
     </update>
 </mapper>

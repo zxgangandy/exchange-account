@@ -33,14 +33,15 @@ public class SpotAccountServiceTest {
 
     @Test
     public void TestCreateOneAccount() {
-        spotAccountService.createAccount(1L, "IDA");
-        Assert.assertNotNull(spotAccountService.getAccount(1L, "IDA").get());
+        spotAccountService.updateOne();
+//        spotAccountService.createAccount(1L, "IDA");
+//        Assert.assertNotNull(spotAccountService.getAccount(1L, "IDA").get());
     }
 
     @Test
     public void TestCreateOneAccounts() {
-        spotAccountService.createAccount(Lists.newArrayList(1L), Lists.newArrayList("IDA"));
-        Assert.assertNotNull(spotAccountService.getAccount(1L, "IDA").get());
+        spotAccountService.createAccount(Lists.newArrayList(3L, 1L), Lists.newArrayList("ETH"));
+        Assert.assertNotNull(spotAccountService.getAccount(1L, "ETH").get());
     }
 
     @Test

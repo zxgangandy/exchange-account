@@ -39,7 +39,7 @@ import static com.zxgangandy.account.biz.support.AccountSupport.*;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotAccount> implements ISpotAccountService {
+            public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotAccount> implements ISpotAccountService {
     private final TxTemplateService             txTemplateService;
     private final ISpotAccountLogService        spotAccountLogService;
     private final SpotAccountMapper             spotAccountMapper;
@@ -290,6 +290,14 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
         });
     }
 
+    @Override
+    public void updateOne() {
+        lambdaUpdate()
+                .eq(SpotAccount::getUserId, 123)
+                .setSql("balance=balance+"+1)
+                .update();
+    }
+
     /**
      * @Description: 根据单个用户id和币种来构建账号初始化列表
      * @date 4/5/21
@@ -354,6 +362,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
      */
     private boolean updateOrderUnfrozen(UnfrozenReqBO reqBO) {
         return spotAccountFrozenService.updateOrderFrozen(
+                reqBO.getUserId(),
                 reqBO.getOrderId(),
                 reqBO.getBizType(),
                 reqBO.getAmount());
