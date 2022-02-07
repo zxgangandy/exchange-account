@@ -29,14 +29,19 @@ public class SpotAccountServiceTest {
 
     @Test
     public void TestCreateOneAccount() {
-        spotAccountService.createAccount(1L, "IDA");
-        Assert.assertNotNull(spotAccountService.getAccount(1L, "IDA").get());
+        spotAccountService.createAccount(1L, "BTC");
+        Assert.assertNotNull(spotAccountService.getAccount(1L, "BTC").get());
     }
 
     @Test
-    public void TestCreateOneAccounts() {
-        spotAccountService.createAccount(Lists.newArrayList(3L, 1L), Lists.newArrayList("ETH"));
-        Assert.assertNotNull(spotAccountService.getAccount(1L, "ETH").get());
+    public void TestCreateMultiAccounts() {
+        try {
+            spotAccountService.createAccount(Lists.newArrayList(3L, 4L), Lists.newArrayList("ETH"));
+        } catch (BizErr err) {
+
+        }
+
+        Assert.assertNotNull(spotAccountService.getAccount(3L, "ETH").get());
     }
 
     @Test

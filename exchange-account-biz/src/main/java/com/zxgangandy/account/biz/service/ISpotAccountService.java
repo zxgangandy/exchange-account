@@ -30,20 +30,20 @@ public interface ISpotAccountService extends IService<SpotAccount> {
     /**
      * @Description: 根据用户列表和币种列表创建账务账户
      * @date 4/16/21
-     * @Param uids: 用户列表
+     * @Param uidList: 用户列表
      * @Param currencies: 币种列表
      * @return: void
      */
-    void createAccount(List<Long> uids, List<String> currencies);
+    void createAccount(List<Long> uidList, List<String> currencies);
 
     /**
-     * @Description: 根据用户列表和币种获取已经存在的用户列表
+     * @Description: 根据用户id列表和币种获取已经存在的用户列表
      * @date 4/16/21
-     * @Param uids: 用户列表
+     * @Param uidList: 用户列表
      * @Param currency:
      * @return: java.util.List<java.lang.Long> 已经存在的用户列表
      */
-    List<Long> getExistAccounts(List<Long> uids, String currency);
+    List<Long> getExistAccounts(List<Long> uidList, String currency);
 
     /**
      *  根据用户id和币种获取用户账户信息

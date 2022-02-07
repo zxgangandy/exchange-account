@@ -51,22 +51,24 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
     @Override
     public boolean createAccount(long userId, String currency) {
-
-        return save(new SpotAccount()
-                .setAccountId(defaultUidGenerator.getUID())
-                .setBalance(BigDecimal.ZERO)
-                .setFrozen(BigDecimal.ZERO)
-                .setUserId(userId)
-                .setCurrency(currency));
+        try {
+            return save(new SpotAccount()
+                    .setAccountId(defaultUidGenerator.getUID())
+                    .setBalance(BigDecimal.ZERO)
+                    .setFrozen(BigDecimal.ZERO)
+                    .setUserId(userId)
+                    .setCurrency(currency));
+        }  catch (DuplicateKeyException ex) {
+            return false;
+        }
     }
 
     @Override
-    public void createAccount(List<Long> uids, List<String> currencies) {
-        Assert.isTrue(uids.size() <= 20,
-                "user id list size must not be bigger than 20");
+    public void createAccount(List<Long> uidList, List<String> currencies) {
+        Assert.isTrue(uidList.size() <= 20, "uid list size must be lower than 20");
 
         txTemplateService.doInTransaction(() ->
-                uids.stream().forEach(uid -> {
+                uidList.stream().forEach(uid -> {
                     try {
                         saveBatch(buildAccounts(uid, currencies));
                     } catch (DuplicateKeyException ex) {
@@ -77,9 +79,9 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     }
 
     @Override
-    public List<Long> getExistAccounts(List<Long> uids, String currency) {
+    public List<Long> getExistAccounts(List<Long> uidList, String currency) {
         List<SpotAccount> accounts = lambdaQuery()
-                .in(SpotAccount::getUserId, uids)
+                .in(SpotAccount::getUserId, uidList)
                 .eq(SpotAccount::getCurrency, currency).list();
         if (CollectionUtils.isNotEmpty(accounts)) {
             return accounts.stream()
