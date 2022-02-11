@@ -125,7 +125,8 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
         return lambdaQuery()
                 .eq(SpotAccount::getUserId, userId)
                 .eq(SpotAccount::getCurrency, currency)
-                .last(" for update").one();
+                .last(" for update").oneOpt()
+                .orElseThrow(()-> new BizErr(ACCOUNT_NOT_FOUND));
     }
 
     /**
@@ -143,9 +144,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
         txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
-            if (account == null) {
-                throw new BizErr(ACCOUNT_NOT_FOUND);
-            }
 
             log.info("frozen locked account={}", account);
 
@@ -242,9 +240,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
         txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
-            if (account == null) {
-                throw new BizErr(ACCOUNT_NOT_FOUND);
-            }
 
             log.info("deposit=>account={}", account);
 
@@ -283,9 +278,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
         txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
-            if (account == null) {
-                throw new BizErr(ACCOUNT_NOT_FOUND);
-            }
 
             log.info("withdraw=>account={}", account);
 

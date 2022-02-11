@@ -1,8 +1,10 @@
 package com.zxgangandy.account.biz;
 
 import com.zxgangandy.account.assembly.AccountApplication;
+import com.zxgangandy.account.biz.bo.DepositReqBO;
 import com.zxgangandy.account.biz.bo.FrozenReqBO;
 import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
+import com.zxgangandy.account.biz.entity.SpotAccount;
 import com.zxgangandy.account.biz.service.ISpotAccountService;
 import io.jingwei.base.utils.exception.BizErr;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 
@@ -42,6 +46,59 @@ public class SpotAccountServiceTest {
         }
 
         Assert.assertNotNull(spotAccountService.getAccount(3L, "ETH").get());
+    }
+
+    @Test
+    public void getExistAccount() {
+        Assert.assertNotNull(spotAccountService.getAccount(3L, "ETH"));
+        Assert.assertNotNull(spotAccountService.getAccount(4L, "ETH"));
+    }
+
+    @Test
+    public void getExistAccounts() {
+        List<Long> actualExits = Lists.newArrayList(3L, 4L);
+        List<Long> exits = spotAccountService.getExistAccounts(Lists.newArrayList(3L, 4L, 0L), "ETH");
+
+        Assert.assertEquals(exits, actualExits);
+    }
+
+    @Test
+    public void getAccountList() {
+        List<SpotAccount> accounts = spotAccountService.getAccountsByUserId(3L);
+        Assert.assertNotNull(accounts);
+        Assert.assertTrue(accounts.size() == 1);
+    }
+
+    @Test
+    public void testDepositAccountNotCreate() {
+        try {
+            spotAccountService.deposit(new DepositReqBO()
+                    .setAmount(new BigDecimal(10000))
+                    .setBizType("deposit1")
+                    .setCurrency("USDT")
+                    .setOrderId(1L)
+                    .setUserId(1L));
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12500"));
+        }
+    }
+
+    @Test
+    public void testDepositAccountOk() {
+
+        SpotAccount oldAccount = spotAccountService.getAccount(1L, "BTC").get();
+
+        spotAccountService.deposit(new DepositReqBO()
+                .setAmount(new BigDecimal(10000))
+                .setBizType("deposit1")
+                .setCurrency("BTC")
+                .setOrderId(1L)
+                .setUserId(1L));
+
+        SpotAccount newAccount = spotAccountService.getAccount(1L, "BTC").get();
+
+        Assert.assertEquals(10000, newAccount.getBalance().subtract(oldAccount.getBalance()).longValue());
     }
 
     @Test

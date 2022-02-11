@@ -69,6 +69,7 @@ public class AccountSupport {
     public static SpotAccountTrade createOrderDeposit(SpotAccount account, DepositReqBO reqBO) {
         return new SpotAccountTrade()
                 .setUserId(reqBO.getUserId())
+                .setAccountId(account.getAccountId())
                 .setOrderId(reqBO.getOrderId())
                 .setBizType(reqBO.getBizType())
                 .setCurrency(reqBO.getCurrency())
