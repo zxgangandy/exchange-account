@@ -4,6 +4,7 @@ import com.zxgangandy.account.assembly.AccountApplication;
 import com.zxgangandy.account.biz.bo.DepositReqBO;
 import com.zxgangandy.account.biz.bo.FrozenReqBO;
 import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
+import com.zxgangandy.account.biz.bo.WithdrawReqBO;
 import com.zxgangandy.account.biz.entity.SpotAccount;
 import com.zxgangandy.account.biz.service.ISpotAccountService;
 import io.jingwei.base.utils.exception.BizErr;
@@ -99,6 +100,53 @@ public class SpotAccountServiceTest {
         SpotAccount newAccount = spotAccountService.getAccount(1L, "BTC").get();
 
         Assert.assertEquals(10000, newAccount.getBalance().subtract(oldAccount.getBalance()).longValue());
+    }
+
+
+    @Test
+    public void testWithdrawAccountNotCreate() {
+        try {
+            spotAccountService.withdraw(new WithdrawReqBO()
+                    .setAmount(new BigDecimal(10000))
+                    .setBizType("withdraw1")
+                    .setCurrency("USDT")
+                    .setOrderId(1L)
+                    .setUserId(1L));
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12500"));
+        }
+    }
+
+    @Test
+    public void testWithdrawBalanceNotEnough() {
+        try {
+            spotAccountService.withdraw(new WithdrawReqBO()
+                    .setAmount(new BigDecimal(20000))
+                    .setBizType("withdraw1")
+                    .setCurrency("BTC")
+                    .setOrderId(1L)
+                    .setUserId(1L));
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12502"));
+        }
+    }
+
+    @Test
+    public void testWithdrawOK() {
+
+        spotAccountService.withdraw(new WithdrawReqBO()
+                .setAmount(new BigDecimal(10000))
+                .setBizType("withdraw1")
+                .setCurrency("BTC")
+                .setOrderId(1L)
+                .setUserId(1L));
+
+        SpotAccount newAccount = spotAccountService.getAccount(1L, "BTC").get();
+
+        Assert.assertEquals(0, newAccount.getBalance().subtract(newAccount.getBalance()).longValue());
+
     }
 
     @Test

@@ -281,6 +281,12 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
             log.info("withdraw=>account={}", account);
 
+            if (account.getBalance().compareTo(reqBO.getAmount()) == -1) {
+                log.warn("withdraw failed, because balance is not enough, balance={}, withdraw={}",
+                        account.getBalance(), reqBO.getAmount());
+                throw new BizErr(BALANCE_NOT_ENOUGH);
+            }
+
             if (!updateAccountWithdraw(reqBO)) {
                 log.warn("update account Withdraw failed, account={}, reqBO={}", account, reqBO);
                 throw new BizErr(BALANCE_NOT_ENOUGH);
@@ -288,7 +294,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
             try {
                 if (!saveOrderWithdraw(account, reqBO)) {
-                    log.error("save Withdraw order failed, account={} by order={}", account, reqBO);
+                    log.error("save withdraw order failed, account={} by order={}", account, reqBO);
                     throw new SysErr();
                 }
             }  catch (DuplicateKeyException ex) {
@@ -505,7 +511,7 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
     }
 
     private boolean updateAccountWithdraw(WithdrawReqBO reqBO) {
-        return SqlHelper.retBool(spotAccountMapper.depositByUser(reqBO.getUserId(),
+        return SqlHelper.retBool(spotAccountMapper.withdrawByUser(reqBO.getUserId(),
                 reqBO.getCurrency(), reqBO.getAmount()));
     }
 
