@@ -583,15 +583,12 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
     private void sortAndLockTransferAccounts(WithdrawReqBO withdraw, DepositReqBO deposit) {
         List<SpotAccount> accountInfos = Lists.newArrayList();
-        SpotAccount withdrawAccount = getAccount(withdraw.getUserId(), withdraw.getCurrency())
-                .orElseThrow(()->new BizErr(ACCOUNT_NOT_FOUND));
-        accountInfos.add(withdrawAccount);
-        SpotAccount depositAccount = getAccount(deposit.getUserId(), deposit.getCurrency())
-                .orElseThrow(()->new BizErr(ACCOUNT_NOT_FOUND));
-        accountInfos.add(depositAccount);
+
+        accountInfos.add(new SpotAccount().setUserId(withdraw.getUserId()).setCurrency(withdraw.getCurrency()));
+        accountInfos.add(new SpotAccount().setUserId(deposit.getUserId()).setCurrency(deposit.getCurrency()));
 
         accountInfos.stream()
-                .sorted(Comparator.comparing(SpotAccount::getId))
+                .sorted(Comparator.comparing(SpotAccount::getUserId))
                 .map((accountInfo) ->
                         getLockedAccount(accountInfo.getUserId(), accountInfo.getCurrency())
                 );
