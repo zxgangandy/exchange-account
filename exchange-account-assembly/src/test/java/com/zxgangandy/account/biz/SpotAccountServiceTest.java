@@ -1,10 +1,7 @@
 package com.zxgangandy.account.biz;
 
 import com.zxgangandy.account.assembly.AccountApplication;
-import com.zxgangandy.account.biz.bo.DepositReqBO;
-import com.zxgangandy.account.biz.bo.FrozenReqBO;
-import com.zxgangandy.account.biz.bo.UnfrozenReqBO;
-import com.zxgangandy.account.biz.bo.WithdrawReqBO;
+import com.zxgangandy.account.biz.bo.*;
 import com.zxgangandy.account.biz.entity.SpotAccount;
 import com.zxgangandy.account.biz.service.ISpotAccountService;
 import io.jingwei.base.utils.exception.BizErr;
@@ -34,8 +31,8 @@ public class SpotAccountServiceTest {
 
     @Test
     public void TestCreateOneAccount() {
-        spotAccountService.createAccount(1L, "BTC");
-        Assert.assertNotNull(spotAccountService.getAccount(1L, "BTC").get());
+        spotAccountService.createAccount(1L, "HCH");
+        Assert.assertNotNull(spotAccountService.getAccount(1L, "HCH").get());
     }
 
     @Test
@@ -276,6 +273,63 @@ public class SpotAccountServiceTest {
     }
 
 
+    @Test
+    public void TestTransferUserNotFound(){
+        try {
+            spotAccountService.transfer(new TransferReqBO()
+                    .setOrderId(1L)
+                    .setAmount(new BigDecimal(100))
+                    .setBizType("transfer1")
+                    .setCurrency("USDT")
+                    .setFromUserId(7L)
+                    .setToUserId(8L));
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12500"));
+        }
+    }
 
+    @Test
+    public void TestTransferUserNotFound2(){
+        try {
+            spotAccountService.transfer(new TransferReqBO()
+                    .setOrderId(1L)
+                    .setAmount(new BigDecimal(100))
+                    .setBizType("transfer1")
+                    .setCurrency("USDT")
+                    .setFromUserId(1L)
+                    .setToUserId(8L));
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12500"));
+        }
+    }
 
+    @Test
+    public void TestTransferAmountNotEnough(){
+        try {
+            spotAccountService.transfer(new TransferReqBO()
+                    .setOrderId(1L)
+                    .setAmount(new BigDecimal(100))
+                    .setBizType("transfer1")
+                    .setCurrency("ETH")
+                    .setFromUserId(4L)
+                    .setToUserId(3L));
+        } catch (BizErr e) {
+            log.error("e={}", e);
+            Assert.assertThat(e.getCode().getCode(), is("12502"));
+        }
+    }
+
+    @Test
+    public void TestTransferAmountOK(){
+
+        spotAccountService.transfer(new TransferReqBO()
+                .setOrderId(1L)
+                .setAmount(new BigDecimal(1))
+                .setBizType("transfer1")
+                .setCurrency("ETH")
+                .setFromUserId(4L)
+                .setToUserId(3L));
+    }
 }

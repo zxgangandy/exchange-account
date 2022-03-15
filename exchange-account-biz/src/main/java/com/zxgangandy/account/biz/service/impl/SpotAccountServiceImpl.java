@@ -183,9 +183,6 @@ public class SpotAccountServiceImpl extends ServiceImpl<SpotAccountMapper, SpotA
 
         txTemplateService.doInTransaction(() -> {
             SpotAccount account = getLockedAccount(reqBO.getUserId(), reqBO.getCurrency());
-            if (account == null) {
-                throw new BizErr(ACCOUNT_NOT_FOUND);
-            }
 
             log.info("unfrozen=>account={}", account);
 
