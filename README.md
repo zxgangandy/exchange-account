@@ -1,5 +1,5 @@
 # exchange-account
-Exchange-account can be used as a partial of micro-services or as a submodule to an account application.
+Exchange-account can be used as a partial of exchange micro-services or as a submodule to an account application.
 It supports most functions in the exchange account service.
 
 ## features
