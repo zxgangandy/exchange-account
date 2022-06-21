@@ -21,7 +21,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <spring-boot.version>2.2.4.RELEASE</spring-boot.version>
-        <mysql-connector-java.version>8.0.16</mysql-connector-java.version>
+        <mysql-connector-java.version>8.0.28</mysql-connector-java.version>
         <org.mapstruct.version>1.3.1.Final</org.mapstruct.version>
         <HikariCP.version>3.4.1</HikariCP.version>
         <mybatis-plus.version>3.3.1</mybatis-plus.version>
